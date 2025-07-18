@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+	<title>Panner3d</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<link rel="icon" type="image/png" sizes="174x174" href="./favicon.png">
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/2.4.3/webcomponents-bundle.js"></script>
+	<link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet"/>
+	<script src="../js/Tone.js"></script>
+	<script src="../js/tone-ui.js"></script>
+	<script src="../js/components.js"></script>
+
+	<style type="text/css">
+		tone-play-toggle {
+			margin-bottom: 10px;
+		}
+	</style>
+</head>
+<body>
+	<tone-example label="3D Panning">
+		<tone-loader></tone-loader>
+		<div slot="explanation">
+			Tone.Panner3D and Tone.Listener work together to create 3D audio. Connect your synths and sources to Panner3D and then to the master output, anything you connect to the panner will be spatialized according the position of the panner relative to the position of the listener. This example synchronizes the position of the camera with Tone.Listener and the position of each of the spheres with a track.
+			<br><br>
+			Note: the 3D panning effect is more effective with headphones.
+		</div>
+
+		<div id="content">
+			<tone-play-toggle></tone-play-toggle>
+			<tone-slider 
+				label="x"
+				id="xSlider"
+				min="-2"
+				max="2"
+				value="0"
+			></tone-slider>
+			<tone-slider 
+				id="zSlider"
+				label="z"
+				min="-2"
+				max="2"
+				value="0"
+			></tone-slider>
+			<tone-slider 
+				id="rotation"
+				label="rotation"
+				min="0"
+				max="6.28"
+				value="0"
+				units="rad"
+			></tone-slider>
+		</div>
+	</tone-example>
+
+	<script type="text/javascript">
+		function createPlayerPlusPanner(url, positionX, positionY, positionZ) {
+			const panner = new Tone.Panner3D({
+				panningModel: "HRTF",
+				positionX,
+				positionY,
+				positionZ,
+			}).toDestination();
+
+			const player = new Tone.Player({
+				url,
+				loop: true,
+			}).connect(panner).sync().start(0);
+		}
+	createPlayerPlusPanner("../audio/FOSSADRUM1.ogg", -2, 0, 0);
+	createPlayerPlusPanner("../audio/FOSSADRUM2.ogg", 2, 0, 0.41086);
+	createPlayerPlusPanner("../audio/FOSSADRUM3.ogg", -1.5, 0, 0.82);
+	createPlayerPlusPanner("../audio/FOSSADRUM4.ogg", 1.5, 0, 1.2);
+	createPlayerPlusPanner("../audio/FOSSADRUM5.ogg", -1, 0, 1.6);
+	createPlayerPlusPanner("../audio/FOSSADRUM6.ogg", 1, 0, 2.06);
+	createPlayerPlusPanner("../audio/FOSSADRUM7.ogg", -0.5, 0, 2.47);
+	createPlayerPlusPanner("../audio/FOSSADRUM8.ogg", 0.5, 0, 2.8);
+	createPlayerPlusPanner("../audio/FOSSAguitar.ogg", 0, 0, 3.29);
+	createPlayerPlusPanner("../audio/FOSSAkorg.ogg", -2, 0, 3.7);
+	createPlayerPlusPanner("../audio/FOSSAnord.ogg", 2, 0, 4.1);
+	createPlayerPlusPanner("../audio/FOSSApiano.ogg", -1.2, 0, 4.5);
+	createPlayerPlusPanner("../audio/FOSSAsax.ogg", 1.2, 0, 4.93);
+	createPlayerPlusPanner("../audio/FOSSAtrumpet.ogg", -0.8, 0, 5.34);
+	createPlayerPlusPanner("../audio/FOSSAxylo.ogg", 0.8, 0, 6.28);
+		
+
+		document.querySelector("tone-play-toggle").addEventListener("start", () => Tone.Transport.start());
+		document.querySelector("tone-play-toggle").addEventListener("stop", () => Tone.Transport.stop());
+		
+		function setRotation(angle) {
+			Tone.Listener.forwardX.value = Math.sin(angle);
+			Tone.Listener.forwardY.value = 0;
+			Tone.Listener.forwardZ.value = -Math.cos(angle);
+		}
+
+		document.querySelector("#xSlider").addEventListener("input", (e) => Tone.Listener.positionX.value = parseFloat(e.target.value));
+		document.querySelector("#zSlider").addEventListener("input", (e) => Tone.Listener.positionY.value = parseFloat(e.target.value));
+		document.querySelector("#rotation").addEventListener("input", (e) => setRotation(parseFloat(e.target.value)));
+
+	</script>
+
+	</style>
+</body>
+</html>

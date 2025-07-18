@@ -1,0 +1,129 @@
+<!-- NOWHERE
+
+KEY ELEMENTS:
+--TONE EXAMPLES:	
+	--STEP SEQUENCER
+	--TRANSPORT TO SCHEDULE TEMPO CHANGE AND SEQUENCER SAMPLE CHANGE
+--CHIPTUNE STYLE DRUM SAMPLES
+
+-->
+
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Buses</title>
+
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, maximum-scale=1"
+		/>
+		<link
+			rel="icon"
+			type="image/png"
+			sizes="174x174"
+			href="./favicon.png"
+		/>
+
+		<script src="./js/webcomponents-bundle.js"></script>
+		<link
+			href="./css/fonts.css"
+			rel="stylesheet"
+		/>
+		<script src="./js/Tone.js"></script>
+		<script src="./js/tone-ui.js"></script>
+		<script src="./js/components.js"></script>
+
+		<script src="./js/p5.js"></script>
+   		<script src="./js/p5.sound.min.js"></script>
+
+	</head>
+
+
+
+
+
+
+	
+	<body>
+		<tone-example label="Step Sequencer">
+			<tone-loader></tone-loader>
+			<div slot="explanation">
+				<a
+					href="https://tonejs.github.io/docs/latest/functions/getTransport.html"
+					>Tone.Transport</a
+				>
+				is the application-wide timekeeper. Its clock source enables
+				sample-accurate scheduling as well as tempo-curves and
+				automation. This example uses Tone.Sequence to invoke a callback
+				every 16th note.
+			</div>
+
+			<div id="content">
+				<tone-play-toggle></tone-play-toggle>
+		
+				<tone-step-sequencer></tone-step-sequencer>
+			</div>
+		</tone-example>
+
+
+
+
+ <script src="./p5/Connected Particles copy.js"></script>
+
+
+
+
+
+		<script type="text/javascript">
+
+			// Create player and sync to transport
+			const player = new Tone.Player("./audio/Nowhere/NOWHERE.mp3")
+				.toDestination();
+			player.sync().start(0).stop()
+			player.autostart = true;
+
+			const keys = new Tone.Players({
+				urls: {
+					3: "agogoHigh.mp3",
+					2: "agogoLow.mp3",
+					1: "snare.mp3",
+					0: "kick.mp3",
+				},
+				fadeOut: "64n",
+				baseUrl: `./audio/Nowhere/`,
+			}).toDestination();
+
+
+			
+			document
+				.querySelector("tone-play-toggle")
+				.addEventListener("start", () => Tone.Transport.start());
+			document
+				.querySelector("tone-play-toggle")
+				.addEventListener("stop", () => Tone.Transport.stop());
+			document
+				.querySelector("tone-step-sequencer")
+				.addEventListener("trigger", ({ detail }) => {
+					keys.player(detail.row).start(detail.time, 0, "16t");
+				});
+			document
+				.querySelector("tone-play-toggle")
+
+				.addEventListener("start", async () => {
+					await Tone.start(); // 🔓 Unlock the audio context
+					Tone.Transport.bpm.value = 61;
+
+					Tone.Transport.schedule((time) => {
+					Tone.Transport.bpm.setValueAtTime(102, time); 
+					}, "4:2:0");
+
+					Tone.Transport.schedule((time) => {
+					Tone.Transport.bpm.setValueAtTime(144, time); 
+					}, "19:2:0");
+  });
+
+				
+		</script>
+	</body>
+</html>

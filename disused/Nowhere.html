@@ -1,0 +1,77 @@
+<!-- NOWHERE
+
+KEY ELEMENTS:
+--TONE EXAMPLES:	
+	--STEP SEQUENCER
+	--TRANSPORT TO SCHEDULE TEMPO CHANGE AND SEQUENCER SAMPLE CHANGE
+--CHIPTUNE STYLE DRUM SAMPLES
+
+-->
+
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Buses</title>
+
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, maximum-scale=1"
+		/>
+		<link
+			rel="icon"
+			type="image/png"
+			sizes="174x174"
+			href="./favicon.png"
+		/>
+
+		<script src="./js/webcomponents-bundle.js"></script>
+		<link
+			href="./css/fonts.css"
+			rel="stylesheet"
+		/>
+		<script src="./js/Tone.js"></script>
+		<script src="./js/tone-ui.js"></script>
+		<script src="./js/components.js"></script>
+
+		<script src="./js/p5.js"></script>
+
+	</head>
+
+
+
+
+
+
+	
+	<body>
+		<tone-example label="Step Sequencer">
+			<tone-loader></tone-loader>
+			<div slot="explanation">
+				<a
+					href="https://tonejs.github.io/docs/latest/functions/getTransport.html"
+					>Tone.Transport</a
+				>
+				is the application-wide timekeeper. Its clock source enables
+				sample-accurate scheduling as well as tempo-curves and
+				automation. This example uses Tone.Sequence to invoke a callback
+				every 16th note.
+			</div>
+
+			<div id="content">
+				<tone-play-toggle></tone-play-toggle>
+		
+				<tone-step-sequencer></tone-step-sequencer>
+			</div>
+		</tone-example>
+
+
+
+
+
+
+	<script src="./p5/Connected Particles.js"></script>
+	<script src="./tone/Nowhere.js"></script>
+
+	</body>
+</html>

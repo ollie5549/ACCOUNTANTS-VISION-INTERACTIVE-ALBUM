@@ -1,0 +1,86 @@
+<!-- THREE BOATS
+
+KEY ELEMENTS:
+--2 STEMS (1. ELECTRONIC 2. ACOUSTIC)
+--3RD ELEMENT TO BE DECIDED
+--PAINTING OF THREE BOATS (BACKGROUND, 3 DRAGGABLE OBJECTS)
+--SIMILAR MECHANICS TO COLOURS
+-- 3rd element is rotation?
+-->
+
+
+
+
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Buses</title>
+
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, maximum-scale=1"
+		/>
+		<link
+			rel="icon"
+			type="image/png"
+			sizes="174x174"
+			href="./favicon.png"
+		/>
+
+		<script src="./js/webcomponents-bundle.js"></script>
+		<link
+			href="./css/fonts.css"
+			rel="stylesheet"
+		/>
+		<script src="./js/Tone.js"></script>
+		<script src="./js/tone-ui.js"></script>
+		<script src="./js/components.js"></script>
+
+		<script src="./js/p5.js"></script>
+
+
+	</head>
+<body>
+	<tone-example label="3D Panning">
+		<tone-loader></tone-loader>
+		<div slot="explanation">
+			Tone.Panner3D and Tone.Listener work together to create 3D audio. Connect your synths and sources to Panner3D and then to the master output, anything you connect to the panner will be spatialized according the position of the panner relative to the position of the listener. This example synchronizes the position of the camera with Tone.Listener and the position of each of the spheres with a track.
+			<br><br>
+			Note: the 3D panning effect is more effective with headphones.
+		</div>
+
+		<div id="content">
+			<tone-play-toggle></tone-play-toggle>
+			<tone-slider 
+				label="x"
+				id="xSlider"
+				min="-2"
+				max="2"
+				value="0"
+			></tone-slider>
+			<tone-slider 
+				id="zSlider"
+				label="z"
+				min="-2"
+				max="2"
+				value="0"
+			></tone-slider>
+			<tone-slider 
+				id="rotation"
+				label="rotation"
+				min="0"
+				max="6.28"
+				value="0"
+				units="rad"
+			></tone-slider>
+		</div>
+	</tone-example>
+
+
+ <script src="./p5/Conditions.js"></script>
+  <script src="./tone/ThreeBoats.js"></script>
+
+
+</body>
+</html>
