@@ -11,6 +11,8 @@ You can experience Accountant's Vision directly via the website link below:
 https://ollie5549.github.io/ACCOUNTANTS-VISION-INTERACTIVE-ALBUM/
 
 # Your Feedback Matters!
-I'd love to hear about your experience with Accountant's Vision. Your feedback is incredibly valuable as I work towards the project's deadline.
+I'd love to hear about your experience with Accountant's Vision.
 
 Please share your thoughts and any suggestions you might have by the 29th July, so I can implement changes before August 13th.
+
+Thank you so much! 
