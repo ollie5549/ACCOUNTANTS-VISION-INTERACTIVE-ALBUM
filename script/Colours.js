@@ -20,59 +20,58 @@ const AcousticVolumeChannel = new Tone.Channel(); // No direct connection to lim
 const AtmosVolumeChannel = new Tone.Channel();   // No direct connection to limiter here
 const ElectronicVolumeChannel = new Tone.Channel(); // No direct connection to limiter here
 
-// Connect players to their respective volume channels
-AcousticPlayer.connect(AcousticVolumeChannel);
-AtmosPlayer.connect(AtmosVolumeChannel);
-ElectronicPlayer.connect(ElectronicVolumeChannel);
+const DryVolumeChannel = new Tone.Channel(); // This and the summed FX channel will be sent to the limiter
+
+
+//crossfade between FX and DRY signal 
+const crossFade = new Tone.CrossFade().connect(limiter);
+// connect two inputs Tone.to a/b
+
+
+
+// // use the fade to control the mix between the two
+// crossFade.fade.value = 0.5;
+
+
+
+
+
+// Connect players to their respective volume channels --- AND THE DRY VOLUME CHANNEL
+AcousticPlayer.connect(AcousticVolumeChannel, DryVolumeChannel);
+AtmosPlayer.connect(AtmosVolumeChannel, DryVolumeChannel);
+ElectronicPlayer.connect(ElectronicVolumeChannel, DryVolumeChannel);
+
+
 
 
 // make some effects
-const chorus = new Tone.Chorus({
-    wet: 0,
-    frequency: 1.5,
-    depth: 0.7,
-})
-.connect(limiter); // Chorus remains a send effect to the limiter
+const chorus = new Tone.Chorus();
+const autoFilter = new Tone.AutoFilter(); 
+const reverb = new Tone.Reverb(); 
 
-// AutoFilter is now an INSERT EFFECT for the main audio path
-const autoFilter = new Tone.AutoFilter(50); // Initialize without direct connection to limiter yet
-autoFilter.start(); // THEN call .start() on it
 
-const reverb = new Tone.Reverb(3).connect(limiter); // Reverb remains a send effect
+// Connect ALL volume channels TO the chorus
+AcousticVolumeChannel.connect(chorus).connect(DryVolumeChannel);
+AtmosVolumeChannel.connect(chorus).connect(DryVolumeChannel);
+ElectronicVolumeChannel.connect(chorus).connect(DryVolumeChannel);
 
-// --- NEW ROUTING FOR AUTOFILTER ---
-// Connect ALL volume channels TO the autoFilter
-AcousticVolumeChannel.connect(autoFilter);
-AtmosVolumeChannel.connect(autoFilter);
-ElectronicVolumeChannel.connect(autoFilter);
 
-// Then, connect the autoFilter's output TO the limiter
-autoFilter.connect(limiter);
 
-// --- RETAIN OTHER SEND/RECEIVE ---
-const chorusWetControl = new Tone.Channel().connect(chorus);
-chorusWetControl.receive("chorus");
 
-// REMOVE autoFilterWetControl AND ITS receive CALL, as it's no longer needed for direct routing.
-// const autoFilterWetControl = new Tone.Channel().connect(autoFilter);
-// autoFilterWetControl.receive("autoFilter");
 
-const reverbWetControl = new Tone.Channel().connect(reverb);
-reverbWetControl.receive("reverb");
+//connect the inserts 
+chorus.connect(autoFilter); 
+autoFilter.connect(reverb)
 
-// Initial send amounts to effects (still applies to chorus and reverb)
-AcousticVolumeChannel.send("chorus", 1);
-AtmosVolumeChannel.send("chorus", 1);
-ElectronicVolumeChannel.send("chorus", 1);
+reverb.connect(crossFade.a);
+DryVolumeChannel.connect(crossFade.b);
 
-// REMOVE THESE, as audio now goes directly through autoFilter
-// AcousticVolumeChannel.send("autoFilter", 1);
-// AtmosVolumeChannel.send("autoFilter", 1);
-// ElectronicVolumeChannel.send("autoFilter", 1);
 
-AcousticVolumeChannel.send("reverb", 1);
-AtmosVolumeChannel.send("reverb", 1);
-ElectronicVolumeChannel.send("reverb", 1);
+
+
+
+
+
 
 // --- New function to hide the loading screen ---
 function hideLoadingScreen() {
@@ -116,16 +115,19 @@ function setup() {
 
     // Define each shape's properties with new positions and sizes, removing cone and cylinder
     shapes = [
-        { name: 'plane', x: -200, y: -100, size: 100, rotX: 0, rotY: 0, rotZ: 0 },
-        { name: 'box', x: 0, y: -100, size: 80, rotX: 0, rotY: 0, rotZ: 0 },
-        { name: 'torus', x: 200, y: -100, size: 100, rotX: 0, rotY: 0, rotZ: 0 },
-        { name: 'sphere', x: -100, y: 100, size: 120, rotX: 0, rotY: 0, rotZ: 0 },
-        { name: 'ellipsoid', x: 100, y: 100, size: 100, rotX: 0, rotY: 0, rotZ: 0 },
-    ];
+    // Top-left
+    { name: 'plane', x: -150, y: -75, size: 100, rotX: 0, rotY: 0, rotZ: 0 },
+    // Top-right
+    { name: 'box', x: 150, y: -75, size: 80, rotX: 0, rotY: 0, rotZ: 0 },
+    // Bottom-left
+    { name: 'torus', x: -150, y: 75, size: 100, rotX: 0, rotY: 0, rotZ: 0 },
+    // Bottom-right
+    { name: 'sphere', x: 150, y: 75, size: 120, rotX: 0, rotY: 0, rotZ: 0 },
+];
 
     // Rearrange the description to match the new shapes
     describe(
-        'Six 3D shapes: a plane, box, torus, sphere and ellipsoid. Each shape is static. Clicking and dragging a shape will rotate it in 3D based on the drag direction.'
+        'Six 3D shapes: a plane, box, torus and sphere. Each shape is static. Clicking and dragging a shape will rotate it in 3D based on the drag direction.'
     );
 }
 
@@ -168,12 +170,12 @@ function draw() {
     sphere(shapes[3].size / 2); // Adjusted sphere size
     pop();
 
-    // Ellipsoid
-    push();
-    translate(shapes[4].x, shapes[4].y, 0);
-    applyShapeRotation(4);
-    ellipsoid(shapes[4].size / 4, shapes[4].size / 2, shapes[4].size / 2); // Adjusted ellipsoid size
-    pop();
+    // // Ellipsoid
+    // push();
+    // translate(shapes[4].x, shapes[4].y, 0);
+    // applyShapeRotation(4);
+    // ellipsoid(shapes[4].size / 4, shapes[4].size / 2, shapes[4].size / 2); // Adjusted ellipsoid size
+    // pop();
 
 
 }
@@ -228,7 +230,7 @@ function mouseDragged() {
         currentShape.rotX -= deltaY * 0.5;
 
         // Define a sensitivity multiplier for audio parameters
-        const audioSensitivity = 10.0; // <<< --- CHANGED TO 10.0 for 10x more sensitivity
+        const audioSensitivity = 5.0; // <<< --- CHANGED TO 10.0 for 10x more sensitivity
 
         // If the dragged shape is the 'box' (shapes[1]), map its rotation to reverb parameters
         if (currentShape.name === 'box') {
@@ -287,10 +289,10 @@ function mouseDragged() {
             if (audioNormalizedRotX < -180) audioNormalizedRotX += 360;
 
             // Map rotY (horizontal drag) to autoFilter.depth and autoFilter.frequency (LFO rate)
-            const depthMin = 0;
-            const depthMax = 1;
+            const depthMin = 0.9;
+            const depthMax = 1.;
             const freqMin = 0.1;
-            const freqMax = 20;
+            const freqMax = 1000;
 
             let mappedDepth = map(audioNormalizedRotY, -180, 180, depthMin, depthMax);
             mappedDepth = constrain(mappedDepth, depthMin, depthMax);
@@ -301,10 +303,10 @@ function mouseDragged() {
             autoFilter.frequency.value = mappedFrequency;
 
             // Map rotX (vertical drag) to autoFilter.baseFrequency and autoFilter.octaves
-            const baseFreqMin = 0.2;
-            const baseFreqMax = 300;
-            const octavesMin = 0.2;
-            const octavesMax = 6;
+            const baseFreqMin = 100;
+            const baseFreqMax = 1500;
+            const octavesMin = -1;
+            const octavesMax = 3;
 
             let mappedBaseFrequency = map(audioNormalizedRotX, -180, 180, baseFreqMin, baseFreqMax);
             mappedBaseFrequency = constrain(mappedBaseFrequency, baseFreqMin, baseFreqMax);
@@ -314,18 +316,163 @@ function mouseDragged() {
             mappedOctaves = constrain(mappedOctaves, octavesMin, octavesMax);
             autoFilter.octaves = mappedOctaves;
 
-            // Map autoFilter.wet using the absolute value of horizontal rotation for broader control
-            const wetMin = 0.6;
-            const wetMax = 1;
-            let mappedWet = map(Math.abs(audioNormalizedRotY), 0, 180, wetMin, wetMax);
-            mappedWet = constrain(mappedWet, wetMin, wetMax);
-            autoFilter.wet.value = mappedWet;
+           
 
-            console.log(`Autofilter - Depth: ${autoFilter.depth.value.toFixed(2)}, Frequency (LFO): ${autoFilter.frequency.value.toFixed(2)}, BaseFreq: ${autoFilter.baseFrequency.toFixed(2)}, Octaves: ${autoFilter.octaves.toFixed(2)}, Wet: ${autoFilter.wet.value.toFixed(2)}`);
+            console.log(`Autofilter - Depth: ${autoFilter.depth.value.toFixed(2)}, Frequency (LFO): ${autoFilter.frequency.value.toFixed(2)}, BaseFreq: ${autoFilter.baseFrequency.toFixed(2)}, Octaves: ${autoFilter.octaves.toFixed(2)}`);
         }
+
+
+
+
+
+
+
+
+
+
+        // If the dragged shape is the 'plane' (shapes[0]), map its rotation to chorus parameters
+        if (currentShape.name === 'plane') {
+            // Apply audio sensitivity to deltas for mapping
+            let audioDeltaX = deltaX * audioSensitivity;
+            let audioDeltaY = deltaY * audioSensitivity;
+
+            // Re-calculate normalized rotation based on the scaled deltas for audio parameters
+            let audioNormalizedRotY = (currentShape.rotY + audioDeltaX) % 360;
+            if (audioNormalizedRotY > 180) audioNormalizedRotY -= 360;
+            if (audioNormalizedRotY < -180) audioNormalizedRotY += 360;
+
+            let audioNormalizedRotX = (currentShape.rotX - audioDeltaY) % 360;
+            if (audioNormalizedRotX > 180) audioNormalizedRotX -= 360;
+            if (audioNormalizedRotX < -180) audioNormalizedRotX += 360;
+
+
+
+            // Map rotY (horizontal drag) to chorus.frequency
+            const freqMin = 1;
+            const freqMax = 1000;
+
+
+            let mappedFrequency = map(audioNormalizedRotY, -180, 180, freqMin, freqMax);
+            mappedFrequency = constrain(mappedFrequency, freqMin, freqMax);
+            chorus.frequency.value = mappedFrequency;
+
+            
+
+
+            // Map rotX (vertical drag) to chorus.Feedback
+            const feedbackMin = 0.;
+            const feedbackMax = 1.;
+
+
+            let mappedFeedback = map(audioNormalizedRotX, -180, 180, feedbackMin, feedbackMax);
+            mappedFeedback = constrain(mappedFeedback, feedbackMin, feedbackMax);
+            chorus.feedback.value = mappedFeedback;
+
+
+           
+            console.log(`Chorus - Frequency: ${chorus.frequency.value.toFixed(2)}, Feedback: ${chorus.feedback.value.toFixed(2)}`);
+        }
+
+
+
+
+
+
+
+
+        // If the dragged shape is the 'plane' (shapes[0]), map its rotation to chorus parameters
+        if (currentShape.name === 'plane') {
+            // Apply audio sensitivity to deltas for mapping
+            let audioDeltaX = deltaX * audioSensitivity;
+            let audioDeltaY = deltaY * audioSensitivity;
+
+            // Re-calculate normalized rotation based on the scaled deltas for audio parameters
+            let audioNormalizedRotY = (currentShape.rotY + audioDeltaX) % 360;
+            if (audioNormalizedRotY > 180) audioNormalizedRotY -= 360;
+            if (audioNormalizedRotY < -180) audioNormalizedRotY += 360;
+
+            let audioNormalizedRotX = (currentShape.rotX - audioDeltaY) % 360;
+            if (audioNormalizedRotX > 180) audioNormalizedRotX -= 360;
+            if (audioNormalizedRotX < -180) audioNormalizedRotX += 360;
+
+
+
+            // Map rotY (horizontal drag) to chorus.frequency
+            const freqMin = 0.;
+            const freqMax = 1.;
+
+
+            let mappedFrequency = map(audioNormalizedRotY, -180, 180, freqMin, freqMax);
+            mappedFrequency = constrain(mappedFrequency, freqMin, freqMax);
+            chorus.frequency.value = mappedFrequency;
+
+            
+
+
+            // Map rotX (vertical drag) to chorus.Feedback
+            const feedbackMin = 0.;
+            const feedbackMax = 1.;
+
+
+            let mappedFeedback = map(audioNormalizedRotX, -180, 180, feedbackMin, feedbackMax);
+            mappedFeedback = constrain(mappedFeedback, feedbackMin, feedbackMax);
+            chorus.feedback.value = mappedFeedback;
+
+
+           
+            console.log(`Chorus - Frequency: ${chorus.frequency.value.toFixed(2)}, Feedback: ${chorus.feedback.value.toFixed(2)}`);
+        }
+
+
+
+
+
+
+
+        // If the dragged shape is the 'sphere' (shapes[3]), map its rotation to reverb parameters
+        if (currentShape.name === 'sphere') {
+            const fadeMin = 0.;
+            const fadeMax = 0.5;
+            // const wetMin = 0.;
+            // const wetMax = 1.;
+
+            // Apply audio sensitivity to deltas for mapping
+            let audioDeltaX = deltaX * audioSensitivity;
+            let audioDeltaY = deltaY * audioSensitivity;
+
+            // Re-calculate normalized rotation based on the scaled deltas for audio parameters
+            let audioNormalizedRotY = (currentShape.rotY + audioDeltaX) % 360;
+            if (audioNormalizedRotY > 180) audioNormalizedRotY -= 360;
+            if (audioNormalizedRotY < -180) audioNormalizedRotY += 360;
+
+            let audioNormalizedRotX = (currentShape.rotX - audioDeltaY) % 360;
+            if (audioNormalizedRotX > 180) audioNormalizedRotX -= 360;
+            if (audioNormalizedRotX < -180) audioNormalizedRotX += 360;
+
+            // Map normalizedRotY to fade
+            let mappedFade = map(audioNormalizedRotY, -180, 180, fadeMin, fadeMax);
+            mappedfade = constrain(mappedFade, fadeMin, fadeMax);
+            crossFade.fade.value = mappedFade;
+
+
+            console.log(`crossFade - fade: ${crossFade.fade.value.toFixed(2)}`);
+        }
+
+
+
+
+
+
+// crossFade.fade.value = 0.5;
+
+
+
+
+
 
         prevMouseX = mouseX;
         prevMouseY = mouseY;
     }
+    
     return false;
-}
+        }
