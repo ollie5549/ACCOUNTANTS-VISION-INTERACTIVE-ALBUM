@@ -10,12 +10,6 @@ You can experience Accountant's Vision directly via the website link below:
 
 https://ollie5549.github.io/ACCOUNTANTS-VISION-INTERACTIVE-ALBUM/
 
-For those interested in the code and development, the GitHub repository is available here:
-
-💻 GitHub Repository
-
-https://github.com/ollie5549/ACCOUNTANTS-VISION-INTERACTIVE-ALBUM
-
 # Your Feedback Matters!
 I'd love to hear about your experience with Accountant's Vision. Your feedback is incredibly valuable as I work towards the project's deadline.
 
