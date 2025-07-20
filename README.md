@@ -1,7 +1,7 @@
 Welcome to Accountant's Vision, the first published draft of this interactive audio-visual experience!
 
 # About the Project
-This project combines Tone.js for complex audio processing with p5.js for engaging visuals, creating a unique interactive album. All the audio featured in this project was composed by Oliver Farrow.
+This project combines Tone.js for audio processing with p5.js for visuals, creating an interactive album. All the audio featured in this project was composed by Oliver Farrow.
 
 # Explore the Project
 You can experience Accountant's Vision directly via the website link below:
