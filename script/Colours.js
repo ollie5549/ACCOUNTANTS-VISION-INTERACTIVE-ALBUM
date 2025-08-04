@@ -1,79 +1,87 @@
-// [ TONE.JS ]
-// the source
+// --- TONE.JS AUDIO SETUP ---
+
 const limiter = new Tone.Limiter(-2).toDestination();
 
+// Use Tone.Player with URL directly.
 const AcousticPlayer = new Tone.Player({
-    url: "./audio/COLOURS/ACOUSTIC.ogg",
+    url: "./audio/COLOURS/ACOUSTIC.mp3", // Ensure .mp3 path
     loop: true,
-});
+}).sync();
 const AtmosPlayer = new Tone.Player({
-    url: "./audio/COLOURS/ATMOS.ogg",
+    url: "./audio/COLOURS/ATMOS.mp3", // Ensure .mp3 path
     loop: true,
-});
+}).sync();
 const ElectronicPlayer = new Tone.Player({
-    url: "./audio/COLOURS/ELECTRONIC.ogg",
+    url: "./audio/COLOURS/ELECTRONIC.mp3", // Ensure .mp3 path
     loop: true,
-});
+}).sync();
 
 // Create separate Tone.Channels for each player to control their individual volumes
-const AcousticVolumeChannel = new Tone.Channel(); // No direct connection to limiter here
-const AtmosVolumeChannel = new Tone.Channel();   // No direct connection to limiter here
-const ElectronicVolumeChannel = new Tone.Channel(); // No direct connection to limiter here
+const AcousticVolumeChannel = new Tone.Channel();
+const AtmosVolumeChannel = new Tone.Channel();
+const ElectronicVolumeChannel = new Tone.Channel();
 
-const DryVolumeChannel = new Tone.Channel(); // This and the summed FX channel will be sent to the limiter
+// This channel will sum the "dry" signals from all players BEFORE effects
+const DryVolumeChannel = new Tone.Channel();
 
-
-//crossfade between FX and DRY signal 
+// Crossfade between the summed FX signal (crossFade.a) and the summed Dry signal (crossFade.b)
 const crossFade = new Tone.CrossFade().connect(limiter);
-// connect two inputs Tone.to a/b
 
+// Effects Chain
+const chorus = new Tone.Chorus().start(); // Start LFO effects immediately
+const autoFilter = new Tone.AutoFilter().start(); // Start LFO effects immediately
+const reverb = new Tone.Reverb(); // Reverb's output will connect to crossFade.a
 
+// --- Corrected Signal Flow ---
+// 1. Players send their signal to their individual volume channels
+AcousticPlayer.connect(AcousticVolumeChannel);
+AtmosPlayer.connect(AtmosVolumeChannel);
+ElectronicPlayer.connect(ElectronicVolumeChannel);
 
-// // use the fade to control the mix between the two
-// crossFade.fade.value = 0.5;
+// 2. Individual volume channels send their signal to the DryVolumeChannel for the dry mix
+AcousticVolumeChannel.connect(DryVolumeChannel);
+AtmosVolumeChannel.connect(DryVolumeChannel);
+ElectronicVolumeChannel.connect(DryVolumeChannel);
 
+// 3. Individual volume channels also send their signal into the effects chain
+AcousticVolumeChannel.connect(chorus);
+AtmosVolumeChannel.connect(chorus);
+ElectronicVolumeChannel.connect(chorus);
 
+// 4. Effects are chained together
+chorus.connect(autoFilter);
+autoFilter.connect(reverb);
 
-
-
-// Connect players to their respective volume channels --- AND THE DRY VOLUME CHANNEL
-AcousticPlayer.connect(AcousticVolumeChannel, DryVolumeChannel);
-AtmosPlayer.connect(AtmosVolumeChannel, DryVolumeChannel);
-ElectronicPlayer.connect(ElectronicVolumeChannel, DryVolumeChannel);
-
-
-
-
-// make some effects
-const chorus = new Tone.Chorus();
-const autoFilter = new Tone.AutoFilter(); 
-const reverb = new Tone.Reverb(); 
-
-
-// Connect ALL volume channels TO the chorus
-AcousticVolumeChannel.connect(chorus).connect(DryVolumeChannel);
-AtmosVolumeChannel.connect(chorus).connect(DryVolumeChannel);
-ElectronicVolumeChannel.connect(chorus).connect(DryVolumeChannel);
-
-
-
-
-
-//connect the inserts 
-chorus.connect(autoFilter); 
-autoFilter.connect(reverb)
-
+// 5. Reverb (wet signal) goes to crossFade.a
 reverb.connect(crossFade.a);
+
+// 6. DryVolumeChannel (dry signal) goes to crossFade.b
 DryVolumeChannel.connect(crossFade.b);
 
+// Set initial crossfade value (e.g., balanced dry/wet)
+crossFade.fade.value = 0.5;
 
 
 
 
 
+// --- Loading Screen & Start Button Management ---
+let audioLoadedAndReady = false; // Flag for when Tone.js buffers are loaded
+let audioContextStarted = false; // Flag for when Tone.context has resumed
 
+function showStartButton() {
+    const loadingWatermark = document.getElementById('loadingWatermark');
+    const loadingText = document.getElementById('loadingText');
+    const startButton = document.getElementById('startButton');
 
-// --- New function to hide the loading screen ---
+    if (loadingWatermark && loadingText && startButton) {
+        loadingText.textContent = "Ready to Play!";
+        loadingWatermark.classList.add('loaded'); // Add 'loaded' class to hide spinner
+        startButton.style.display = 'block'; // Show the button
+        console.log("Start button shown, spinner hidden.");
+    }
+}
+
 function hideLoadingScreen() {
     const loadingWatermark = document.getElementById('loadingWatermark');
     if (loadingWatermark) {
@@ -81,53 +89,120 @@ function hideLoadingScreen() {
         loadingWatermark.style.opacity = '0';
         loadingWatermark.addEventListener('transitionend', () => {
             loadingWatermark.style.display = 'none';
+            console.log("Loading screen hidden.");
         }, { once: true });
+    } else {
+        console.warn("Loading watermark element not found.");
     }
 }
 
-// --- AUDIO PLAYBACK TRIGGERED BY CANVAS INTERACTION ---
-document.addEventListener('DOMContentLoaded', () => {
-    let p5CanvasElement;
-    setTimeout(() => {
-        p5CanvasElement = document.querySelector('canvas');
-        Tone.loaded().then(() => {
-            console.log("All audio files loaded! Hiding loading screen.");
-            hideLoadingScreen();
-        }).catch(error => {
-            console.error("Error loading audio files:", error);
-            hideLoadingScreen();
+function handleInteractionDrag(currentX, currentY) {
+    if (!audioContextStarted) {
+        console.warn("Drag: Audio context not started.");
+        return false;
+    }
+    if (draggedShape === null) { // This should ideally not happen if handleInteractionStart worked
+        console.warn("Drag: draggedShape is null.");
+        return false;
+    }
+    console.log(`Dragging shape: ${shapes[draggedShape].name}`);
+    // ... rest of your drag logic ...
+}
+
+// Function to start Tone.Transport and players
+function startPlayersAndTransport() {
+    if (Tone.Transport.state !== 'started') {
+        Tone.Transport.start();
+        AcousticPlayer.start();
+        AtmosPlayer.start();
+        ElectronicPlayer.start();
+        console.log("Audio playback (Tone.Transport and Players) started! ▶️");
+    } else {
+        console.log("Tone.Transport and Players were already started.");
+    }
+}
+
+// This function is now specifically called by the "Start Audio" button
+function handleStartButtonClick() {
+    // Only attempt to start if audio files are loaded and context hasn't been started yet
+    if (audioLoadedAndReady && !audioContextStarted) {
+        console.log("Start button clicked. Attempting to start audio context.");
+        Tone.start().then(() => {
+            console.log("Tone.context resumed successfully! 🔊");
+            audioContextStarted = true; // Mark context as started
+            startPlayersAndTransport(); // Start playback now
+            hideLoadingScreen(); // Hide the entire loading overlay after audio starts
+        }).catch(e => {
+            console.error("Error resuming Tone.context:", e);
+            alert("Failed to start audio. Please ensure your device's media volume is up and try again.");
+            // If context fails to start, you might want to show a retry button or error message
         });
-    }, 500);
+    } else if (audioContextStarted) {
+        console.log("Audio context already started. Hiding loading screen.");
+        hideLoadingScreen(); // Just hide the loading screen if context is already running (e.g., on desktop)
+    } else {
+        console.warn("Start button clicked but audio not yet loaded. Please wait.");
+        // Could update loadingText here to "Still loading, please wait..."
+    }
+}
+
+
+// --- DOMContentLoaded for Loading & Initial Setup ---
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM Content Loaded.");
+
+    const startButton = document.getElementById('startButton');
+    if (startButton) {
+        startButton.addEventListener('click', handleStartButtonClick);
+        startButton.addEventListener('touchend', handleStartButtonClick); // Also listen for touchend for robustness
+        console.log("Start button listeners attached.");
+    } else {
+        console.error("Start button not found!");
+    }
+
+    // Wait for all Tone.Player buffers to load
+    Tone.loaded().then(() => {
+        console.log("All Tone.Player audio files loaded!");
+        audioLoadedAndReady = true; // Set flag
+        showStartButton(); // Display the start button and hide spinner
+    }).catch(error => {
+        console.error("Error loading audio files (Tone.loaded()):", error);
+        alert("Failed to load audio files. Please check paths and network console for errors.");
+        // If loading fails, still show the button, but it might not play sound.
+        // Or update loadingText to indicate failure.
+        showStartButton();
+        const loadingText = document.getElementById('loadingText');
+        if (loadingText) loadingText.textContent = "Error loading audio. Try again?";
+    });
 });
 
+
+// --- p5.js SKETCH LOGIC ---
+
 let shapes = [];
-
 let draggedShape = null;
-let prevMouseX, prevMouseY;
-
+let prevMouseX, prevMouseY; // For desktop mouse tracking
+let prevTouchX, prevTouchY; // For mobile touch tracking
 
 function setup() {
-    const canvas = createCanvas(710, 400, WEBGL);
+    // Canvas fills the entire window and is set to WEBGL mode
+    const canvas = createCanvas(700, 400, WEBGL);
     canvas.parent('canvas-container');
 
     angleMode(DEGREES);
     normalMaterial();
 
-    // Define each shape's properties with new positions and sizes, removing cone and cylinder
     shapes = [
-    // Top-left
-    { name: 'plane', x: -150, y: -75, size: 100, rotX: 0, rotY: 0, rotZ: 0 },
-    // Top-right
-    { name: 'box', x: 150, y: -75, size: 80, rotX: 0, rotY: 0, rotZ: 0 },
-    // Bottom-left
-    { name: 'torus', x: -150, y: 75, size: 100, rotX: 0, rotY: 0, rotZ: 0 },
-    // Bottom-right
-    { name: 'sphere', x: 150, y: 75, size: 120, rotX: 0, rotY: 0, rotZ: 0 },
-];
+        { name: 'plane', x: -width / 4, y: -height / 8, size: 100, rotX: 0, rotY: 0, rotZ: 0 },
+        { name: 'box', x: width / 4, y: -height / 8, size: 80, rotX: 0, rotY: 0, rotZ: 0 },
+        { name: 'torus', x: -width / 4, y: height / 8, size: 100, rotX: 0, rotY: 0, rotZ: 0 },
+        { name: 'sphere', x: width / 4, y: height / 8, size: 120, rotX: 0, rotY: 0, rotZ: 0 },
+    ];
 
-    // Rearrange the description to match the new shapes
     describe(
-        'Six 3D shapes: a plane, box, torus and sphere. Each shape is static. Clicking and dragging a shape will rotate it in 3D based on the drag direction.'
+        'Four 3D shapes: a plane, box, torus, and sphere. Each shape is static. ' +
+        'Clicking/Touching and dragging a shape rotates it in 3D. ' +
+        'Rotating specific shapes controls audio effects: box for reverb, torus for auto-filter, plane for chorus, and sphere for dry/wet mix.'
     );
 }
 
@@ -141,338 +216,210 @@ function draw() {
         rotateZ(s.rotZ);
     }
 
-    // Plane
-    push();
-    translate(shapes[0].x, shapes[0].y, 0);
-    applyShapeRotation(0);
-    plane(shapes[0].size);
-    pop();
-
-    // Box
-    push();
-    translate(shapes[1].x, shapes[1].y, 0);
-    applyShapeRotation(1);
-    box(shapes[1].size);
-    pop();
-
-    // Torus
-    push();
-    translate(shapes[2].x, shapes[2].y, 0);
-    applyShapeRotation(2);
-    torus(shapes[2].size / 2 - 10, shapes[2].size / 5); // Adjusted torus size
-    pop();
-
-    // Sphere
-    push();
-    translate(shapes[3].x, shapes[3].y, 0);
-    applyShapeRotation(3);
-    stroke(0);
-    sphere(shapes[3].size / 2); // Adjusted sphere size
-    pop();
-
-    // // Ellipsoid
-    // push();
-    // translate(shapes[4].x, shapes[4].y, 0);
-    // applyShapeRotation(4);
-    // ellipsoid(shapes[4].size / 4, shapes[4].size / 2, shapes[4].size / 2); // Adjusted ellipsoid size
-    // pop();
-
-
+    push(); translate(shapes[0].x, shapes[0].y, 0); applyShapeRotation(0); plane(shapes[0].size); pop();
+    push(); translate(shapes[1].x, shapes[1].y, 0); applyShapeRotation(1); box(shapes[1].size); pop();
+    push(); translate(shapes[2].x, shapes[2].y, 0); applyShapeRotation(2); torus(shapes[2].size / 2 - 10, shapes[2].size / 5); pop();
+    push(); translate(shapes[3].x, shapes[3].y, 0); applyShapeRotation(3); stroke(0); sphere(shapes[3].size / 2); pop();
 }
 
-function startAudio() {
-    if (Tone.context.state !== 'running') {
-        Tone.start();
-        console.log("Audio context resumed! 🔊");
-    }
-    if (Tone.Transport.state !== 'started') {
-        Tone.Transport.start();
-        AcousticPlayer.start();
-        AtmosPlayer.start();
-        ElectronicPlayer.start();
-        console.log("Audio playback started! ▶️");
-    }
-}
+// --- Unified Interaction Handlers for Mouse and Touch ---
 
-function mousePressed() {
-    startAudio();
+function handleInteractionStart(inputX, inputY) {
+    // Only allow interaction if audio context has successfully started
+    if (!audioContextStarted) {
+        console.warn("Audio context not started yet. Ignoring interaction on canvas.");
+        return false; // Do not process interaction if audio isn't ready
+    }
 
-    let mouseXAdjusted = mouseX - width / 2;
-    let mouseYAdjusted = mouseY - height / 2;
+    let xAdjusted = inputX - width / 2;
+    let yAdjusted = inputY - height / 2;
 
     for (let i = 0; i < shapes.length; i++) {
         let shape = shapes[i];
         if (
-            mouseXAdjusted > shape.x - shape.size / 2 &&
-            mouseXAdjusted < shape.x + shape.size / 2 &&
-            mouseYAdjusted > shape.y - shape.size / 2 &&
-            mouseYAdjusted < shape.y + shape.size / 2
+            xAdjusted > shape.x - shape.size / 2 &&
+            xAdjusted < shape.x + shape.size / 2 &&
+            yAdjusted > shape.y - shape.size / 2 &&
+            yAdjusted < shape.y + shape.size / 2
         ) {
             draggedShape = i;
-            prevMouseX = mouseX;
-            prevMouseY = mouseY;
-            console.log(`Started dragging ${shape.name} for rotation.`);
-            return false;
+            if (mouseIsPressed && typeof mouseX !== 'undefined') {
+                prevMouseX = inputX;
+                prevMouseY = inputY;
+            } else {
+                prevTouchX = inputX;
+                prevTouchY = inputY;
+            }
+            console.log(`Interaction started on ${shape.name}.`);
+            return true;
         }
     }
     return false;
 }
 
+function handleInteractionDrag(currentX, currentY) {
+    // Only allow interaction if audio context has successfully started
+    if (!audioContextStarted) {
+        return false;
+    }
 
-function mouseDragged() {
     if (draggedShape !== null) {
         let currentShape = shapes[draggedShape];
-        let deltaX = mouseX - prevMouseX;
-        let deltaY = mouseY - prevMouseY;
+        let deltaX, deltaY;
 
-        // Apply rotation sensitivity (kept at 0.5 for shape rotation)
+        if (mouseIsPressed && typeof mouseX !== 'undefined') {
+            deltaX = currentX - prevMouseX;
+            deltaY = currentY - prevMouseY;
+            prevMouseX = currentX;
+            prevMouseY = currentY;
+        } else if (touches.length > 0) {
+            deltaX = currentX - prevTouchX;
+            deltaY = currentY - prevTouchY;
+            prevTouchX = currentX;
+            prevTouchY = currentY;
+        } else {
+            return false;
+        }
+
         currentShape.rotY += deltaX * 0.5;
         currentShape.rotX -= deltaY * 0.5;
 
-        // Define a sensitivity multiplier for audio parameters
-        const audioSensitivity = 5.0; // <<< --- CHANGED TO 10.0 for 10x more sensitivity
+        const audioSensitivity = 5.0;
 
-        // If the dragged shape is the 'box' (shapes[1]), map its rotation to reverb parameters
         if (currentShape.name === 'box') {
-            const decayMin = 0.5;
-            const decayMax = 20;
-            const wetMin = 0.;
-            const wetMax = 1.;
+            const decayMin = 0.5, decayMax = 20;
+            const wetMin = 0., wetMax = 1.;
+            const partialMin = 0., partialMax = 1.;
 
-            // Apply audio sensitivity to deltas for mapping
-            let audioDeltaX = deltaX * audioSensitivity;
-            let audioDeltaY = deltaY * audioSensitivity;
+            let mappedDecay = map(currentShape.rotY % 360, -180, 180, decayMin, decayMax);
+            reverb.decay = constrain(mappedDecay, decayMin, decayMax);
 
-            // Re-calculate normalized rotation based on the scaled deltas for audio parameters
-            let audioNormalizedRotY = (currentShape.rotY + audioDeltaX) % 360;
-            if (audioNormalizedRotY > 180) audioNormalizedRotY -= 360;
-            if (audioNormalizedRotY < -180) audioNormalizedRotY += 360;
+            let mappedWet = map(currentShape.rotY % 360, -180, 180, wetMin, wetMax);
+            reverb.wet.value = constrain(mappedWet, wetMin, wetMax);
 
-            let audioNormalizedRotX = (currentShape.rotX - audioDeltaY) % 360;
-            if (audioNormalizedRotX > 180) audioNormalizedRotX -= 360;
-            if (audioNormalizedRotX < -180) audioNormalizedRotX += 360;
+            let mappedPartial = map(currentShape.rotX % 360, -180, 180, partialMin, partialMax);
+            reverb.partial = constrain(mappedPartial, partialMin, partialMax); // Corrected: should be partialMax here
 
-            // Map normalizedRotY to decay
-            let mappedDecay = map(audioNormalizedRotY, -180, 180, decayMin, decayMax);
-            mappedDecay = constrain(mappedDecay, decayMin, decayMax);
-            reverb.decay = mappedDecay;
-
-            // Map normalizedRotY to wet
-            let mappedWet = map(audioNormalizedRotY, -180, 180, wetMin, wetMax);
-            mappedWet = constrain(mappedWet, wetMin, wetMax);
-            reverb.wet.value = mappedWet;
-
-            const partialMin = 0.;
-            const partialMax = 1.;
-
-            // Map normalizedRotX to reverb partial
-            let mappedPartial = map(audioNormalizedRotX, -90, 90, partialMin, partialMax);
-            mappedPartial = constrain(mappedPartial, partialMin, partialMax);
-            reverb.partial = mappedPartial;
-
-            console.log(`Reverb - Decay: ${reverb.decay.toFixed(2)}, Partial: ${reverb.partial.toFixed(2)}, Wet: ${reverb.wet.value.toFixed(2)}`);
+            // console.log(`Reverb - Decay: ${reverb.decay.toFixed(2)}, Partial: ${reverb.partial.toFixed(2)}, Wet: ${reverb.wet.value.toFixed(2)}`);
         }
 
-        // If the dragged shape is the 'torus' (shapes[2]), map its rotation to autofilter parameters
         if (currentShape.name === 'torus') {
-            // Apply audio sensitivity to deltas for mapping
-            let audioDeltaX = deltaX * audioSensitivity;
-            let audioDeltaY = deltaY * audioSensitivity;
+            const depthMin = 0.0, depthMax = 1.0;
+            const freqMin = 0.1, freqMax = 20.0;
+            const baseFreqMin = 100, baseFreqMax = 2000;
+            const octavesMin = 0, octavesMax = 6;
 
-            // Re-calculate normalized rotation based on the scaled deltas for audio parameters
-            let audioNormalizedRotY = (currentShape.rotY + audioDeltaX) % 360;
-            if (audioNormalizedRotY > 180) audioNormalizedRotY -= 360;
-            if (audioNormalizedRotY < -180) audioNormalizedRotY += 360;
+            let mappedDepth = map(currentShape.rotY % 360, -180, 180, depthMin, depthMax);
+            autoFilter.depth.value = constrain(mappedDepth, depthMin, depthMax);
 
-            let audioNormalizedRotX = (currentShape.rotX - audioDeltaY) % 360;
-            if (audioNormalizedRotX > 180) audioNormalizedRotX -= 360;
-            if (audioNormalizedRotX < -180) audioNormalizedRotX += 360;
+            let mappedFrequency = map(currentShape.rotY % 360, -180, 180, freqMin, freqMax);
+            autoFilter.frequency.value = constrain(mappedFrequency, freqMin, freqMax);
 
-            // Map rotY (horizontal drag) to autoFilter.depth and autoFilter.frequency (LFO rate)
-            const depthMin = 0.9;
-            const depthMax = 1.;
-            const freqMin = 0.1;
-            const freqMax = 1000;
+            let mappedBaseFrequency = map(currentShape.rotX % 360, -180, 180, baseFreqMin, baseFreqMax);
+            autoFilter.baseFrequency = constrain(mappedBaseFrequency, baseFreqMin, baseFreqMax);
 
-            let mappedDepth = map(audioNormalizedRotY, -180, 180, depthMin, depthMax);
-            mappedDepth = constrain(mappedDepth, depthMin, depthMax);
-            autoFilter.depth.value = mappedDepth;
+            let mappedOctaves = map(currentShape.rotX % 360, -180, 180, octavesMin, octavesMax);
+            autoFilter.octaves = constrain(mappedOctaves, octavesMin, octavesMax);
 
-            let mappedFrequency = map(audioNormalizedRotY, -180, 180, freqMin, freqMax);
-            mappedFrequency = constrain(mappedFrequency, freqMin, freqMax);
-            autoFilter.frequency.value = mappedFrequency;
-
-            // Map rotX (vertical drag) to autoFilter.baseFrequency and autoFilter.octaves
-            const baseFreqMin = 100;
-            const baseFreqMax = 1500;
-            const octavesMin = -1;
-            const octavesMax = 3;
-
-            let mappedBaseFrequency = map(audioNormalizedRotX, -180, 180, baseFreqMin, baseFreqMax);
-            mappedBaseFrequency = constrain(mappedBaseFrequency, baseFreqMin, baseFreqMax);
-            autoFilter.baseFrequency = mappedBaseFrequency;
-
-            let mappedOctaves = map(audioNormalizedRotX, -180, 180, octavesMin, octavesMax);
-            mappedOctaves = constrain(mappedOctaves, octavesMin, octavesMax);
-            autoFilter.octaves = mappedOctaves;
-
-           
-
-            console.log(`Autofilter - Depth: ${autoFilter.depth.value.toFixed(2)}, Frequency (LFO): ${autoFilter.frequency.value.toFixed(2)}, BaseFreq: ${autoFilter.baseFrequency.toFixed(2)}, Octaves: ${autoFilter.octaves.toFixed(2)}`);
+            // console.log(`Autofilter - Depth: ${autoFilter.depth.value.toFixed(2)}, Freq: ${autoFilter.frequency.value.toFixed(2)}, BaseFreq: ${autoFilter.baseFrequency.toFixed(2)}, Octaves: ${autoFilter.octaves.toFixed(2)}`);
         }
 
-
-
-
-
-
-
-
-
-
-        // If the dragged shape is the 'plane' (shapes[0]), map its rotation to chorus parameters
         if (currentShape.name === 'plane') {
-            // Apply audio sensitivity to deltas for mapping
-            let audioDeltaX = deltaX * audioSensitivity;
-            let audioDeltaY = deltaY * audioSensitivity;
+            const freqMin = 0.1, freqMax = 10.0;
+            const feedbackMin = 0.0, feedbackMax = 0.9;
+            const delayMin = 0.001, delayMax = 0.05;
 
-            // Re-calculate normalized rotation based on the scaled deltas for audio parameters
-            let audioNormalizedRotY = (currentShape.rotY + audioDeltaX) % 360;
-            if (audioNormalizedRotY > 180) audioNormalizedRotY -= 360;
-            if (audioNormalizedRotY < -180) audioNormalizedRotY += 360;
+            let mappedFrequency = map(currentShape.rotY % 360, -180, 180, freqMin, freqMax);
+            chorus.frequency.value = constrain(mappedFrequency, freqMin, freqMax);
 
-            let audioNormalizedRotX = (currentShape.rotX - audioDeltaY) % 360;
-            if (audioNormalizedRotX > 180) audioNormalizedRotX -= 360;
-            if (audioNormalizedRotX < -180) audioNormalizedRotX += 360;
+            let mappedFeedback = map(currentShape.rotX % 360, -180, 180, feedbackMin, feedbackMax);
+            chorus.feedback.value = constrain(mappedFeedback, feedbackMin, feedbackMax);
 
+            let mappedDelay = map(currentShape.rotX % 360, -180, 180, delayMin, delayMax);
+            chorus.delayTime = constrain(mappedDelay, delayMin, delayMax);
 
-
-            // Map rotY (horizontal drag) to chorus.frequency
-            const freqMin = 1;
-            const freqMax = 1000;
-
-
-            let mappedFrequency = map(audioNormalizedRotY, -180, 180, freqMin, freqMax);
-            mappedFrequency = constrain(mappedFrequency, freqMin, freqMax);
-            chorus.frequency.value = mappedFrequency;
-
-            
-
-
-            // Map rotX (vertical drag) to chorus.Feedback
-            const feedbackMin = 0.;
-            const feedbackMax = 1.;
-
-
-            let mappedFeedback = map(audioNormalizedRotX, -180, 180, feedbackMin, feedbackMax);
-            mappedFeedback = constrain(mappedFeedback, feedbackMin, feedbackMax);
-            chorus.feedback.value = mappedFeedback;
-
-
-           
-            console.log(`Chorus - Frequency: ${chorus.frequency.value.toFixed(2)}, Feedback: ${chorus.feedback.value.toFixed(2)}`);
+            // console.log(`Chorus - Freq: ${chorus.frequency.value.toFixed(2)}, Feedback: ${chorus.feedback.value.toFixed(2)}, Delay: ${chorus.delayTime.toFixed(4)}`);
         }
 
-
-
-
-
-
-
-
-        // If the dragged shape is the 'plane' (shapes[0]), map its rotation to chorus parameters
-        if (currentShape.name === 'plane') {
-            // Apply audio sensitivity to deltas for mapping
-            let audioDeltaX = deltaX * audioSensitivity;
-            let audioDeltaY = deltaY * audioSensitivity;
-
-            // Re-calculate normalized rotation based on the scaled deltas for audio parameters
-            let audioNormalizedRotY = (currentShape.rotY + audioDeltaX) % 360;
-            if (audioNormalizedRotY > 180) audioNormalizedRotY -= 360;
-            if (audioNormalizedRotY < -180) audioNormalizedRotY += 360;
-
-            let audioNormalizedRotX = (currentShape.rotX - audioDeltaY) % 360;
-            if (audioNormalizedRotX > 180) audioNormalizedRotX -= 360;
-            if (audioNormalizedRotX < -180) audioNormalizedRotX += 360;
-
-
-
-            // Map rotY (horizontal drag) to chorus.frequency
-            const freqMin = 0.;
-            const freqMax = 1.;
-
-
-            let mappedFrequency = map(audioNormalizedRotY, -180, 180, freqMin, freqMax);
-            mappedFrequency = constrain(mappedFrequency, freqMin, freqMax);
-            chorus.frequency.value = mappedFrequency;
-
-            
-
-
-            // Map rotX (vertical drag) to chorus.Feedback
-            const feedbackMin = 0.;
-            const feedbackMax = 1.;
-
-
-            let mappedFeedback = map(audioNormalizedRotX, -180, 180, feedbackMin, feedbackMax);
-            mappedFeedback = constrain(mappedFeedback, feedbackMin, feedbackMax);
-            chorus.feedback.value = mappedFeedback;
-
-
-           
-            console.log(`Chorus - Frequency: ${chorus.frequency.value.toFixed(2)}, Feedback: ${chorus.feedback.value.toFixed(2)}`);
-        }
-
-
-
-
-
-
-
-        // If the dragged shape is the 'sphere' (shapes[3]), map its rotation to reverb parameters
         if (currentShape.name === 'sphere') {
-            const fadeMin = 0.;
-            const fadeMax = 0.5;
-            // const wetMin = 0.;
-            // const wetMax = 1.;
+            const fadeMin = 0., fadeMax = 1.;
 
-            // Apply audio sensitivity to deltas for mapping
-            let audioDeltaX = deltaX * audioSensitivity;
-            let audioDeltaY = deltaY * audioSensitivity;
+            let mappedFade = map(currentShape.rotY % 360, -180, 180, fadeMin, fadeMax);
+            crossFade.fade.value = constrain(mappedFade, fadeMin, fadeMax);
 
-            // Re-calculate normalized rotation based on the scaled deltas for audio parameters
-            let audioNormalizedRotY = (currentShape.rotY + audioDeltaX) % 360;
-            if (audioNormalizedRotY > 180) audioNormalizedRotY -= 360;
-            if (audioNormalizedRotY < -180) audioNormalizedRotY += 360;
-
-            let audioNormalizedRotX = (currentShape.rotX - audioDeltaY) % 360;
-            if (audioNormalizedRotX > 180) audioNormalizedRotX -= 360;
-            if (audioNormalizedRotX < -180) audioNormalizedRotX += 360;
-
-            // Map normalizedRotY to fade
-            let mappedFade = map(audioNormalizedRotY, -180, 180, fadeMin, fadeMax);
-            mappedfade = constrain(mappedFade, fadeMin, fadeMax);
-            crossFade.fade.value = mappedFade;
-
-
-            console.log(`crossFade - fade: ${crossFade.fade.value.toFixed(2)}`);
+            // console.log(`CrossFade (Dry/Wet) - Fade: ${crossFade.fade.value.toFixed(2)}`);
         }
-
-
-
-
-
-
-// crossFade.fade.value = 0.5;
-
-
-
-
-
-
-        prevMouseX = mouseX;
-        prevMouseY = mouseY;
+        return true;
     }
-    
     return false;
+}
+
+function handleInteractionEnd() {
+    if (!audioContextStarted) {
+        return false;
+    }
+    draggedShape = null;
+    console.log("Interaction ended. Dragged shape reset.");
+    return true;
+}
+
+function mousePressed() {
+    // Only return false (prevent default) if handleInteractionStart actually found a shape.
+    if (handleInteractionStart(mouseX, mouseY)) {
+        return false;
+    }
+    // If no shape was hit, allow the default behavior (e.g., HTML clicks).
+    return true;
+}
+
+function mouseDragged() {
+    if (handleInteractionDrag(mouseX, mouseY)) {
+        return false;
+    }
+    return true;
+}
+
+function mouseReleased() {
+    if (handleInteractionEnd()) {
+        return false;
+    }
+    return true;
+}
+
+function touchStarted() {
+    if (touches.length > 0) {
+        // Same logic: if a shape is hit, prevent default. Otherwise, allow.
+        if (handleInteractionStart(touches[0].x, touches[0].y)) {
+            return false;
         }
+    }
+    return true; // Allow default if no shape was touched or if touches.length is 0
+}
+
+function touchMoved() {
+    if (touches.length > 0) {
+        if (handleInteractionDrag(touches[0].x, touches[0].y)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function touchEnded() {
+    if (handleInteractionEnd()) {
+        return false;
+    }
+    return true;
+}
+
+
+// --- Responsive Canvas Handling ---
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+    shapes = [
+        { name: 'plane', x: -width / 4, y: -height / 8, size: 100, rotX: shapes[0].rotX, rotY: shapes[0].rotY, rotZ: shapes[0].rotZ },
+        { name: 'box', x: width / 4, y: -height / 8, size: 80, rotX: shapes[1].rotX, rotY: shapes[1].rotY, rotZ: shapes[1].rotZ },
+        { name: 'torus', x: -width / 4, y: height / 8, size: 100, rotX: shapes[2].rotX, rotY: shapes[2].rotY, rotZ: shapes[2].rotZ },
+        { name: 'sphere', x: width / 4, y: height / 8, size: 120, rotX: shapes[3].rotX, rotY: shapes[3].rotY, rotZ: shapes[3].rotZ },
+    ];
+}

@@ -1,8 +1,7 @@
+// the source
+const limiter = new Tone.Limiter(-2).toDestination(); 
 
-			// the source
-            const limiter = new Tone.Limiter(-2).toDestination(); 
-
-			const comp = new Tone.Compressor({
+const comp = new Tone.Compressor({
 threshold: -24, // Start here, then adjust based on your mix's overall loudness
 ratio: 3, // Good for general glue; try 2 or 4 if needed
 attack: 0.02, // 20ms - allows transients through for punch
@@ -11,160 +10,215 @@ release: 0.15 // 150ms - good for general musicality, adjust to 'breathe' with t
 
 
 
-			const AcousticPlayer = new Tone.Player({
-				url: "./audio/DragonRide/Acoustic.ogg",
-				loop: true,
-			});
-			const ElectronicPlayer = new Tone.Player({
-				url: "./audio/DragonRide/Electronic.ogg",
-				loop: true,
-			});
-			const KitPlayer = new Tone.Player({
-				url: "./audio/DragonRide/Kit.ogg",
-				loop: true,
-			});
-			const airPlayer = new Tone.Player({
-				url: "./audio/DragonRide/sky.ogg",
-				loop: true,
-				volume: 0,
-			});
+const AcousticPlayer = new Tone.Player({
+    url: "./audio/DragonRide/Acoustic.mp3",
+    loop: true,
+});
+const ElectronicPlayer = new Tone.Player({
+    url: "./audio/DragonRide/Electronic.mp3",
+    loop: true,
+});
+const KitPlayer = new Tone.Player({
+    url: "./audio/DragonRide/Kit.mp3",
+    loop: true,
+});
+const airPlayer = new Tone.Player({
+    url: "./audio/DragonRide/sky.mp3",
+    loop: true,
+    volume: 0,
+});
 
-			// Create a highpass filter
-			const highpassFilter = new Tone.Filter({
-				type: "highpass", // This is crucial for removing bass
-				frequency: 300,    // Adjust this frequency to control how much bass is removed
-				rolloff: -24,      // How steep the cutoff is (optional, but good for clarity)
-			}).connect(comp)
-
-
-
-			
-			// make some effects
-			const Dry = new Tone.Gain(2).connect(comp);
-
-			const DryChannel = new Tone.Channel({ volume: 10 }).connect(
-				Dry
-			);
-			DryChannel.receive("Dry");
-
-			const Sky = new Tone.Gain().connect(highpassFilter);
-			const SkyChannel = new Tone.Channel({ volume: 0 }).connect(
-				Sky
-			);
-			SkyChannel.receive("Sky");
-			
-
-			const reverb = new Tone.Reverb().connect(highpassFilter);
-			const reverbChannel = new Tone.Channel({ volume: 0 }).connect(
-				reverb
-			);
-			reverbChannel.receive("reverb");
+// Create a highpass filter
+const highpassFilter = new Tone.Filter({
+    type: "highpass", // This is crucial for removing bass
+    frequency: 300,    // Adjust this frequency to control how much bass is removed
+    rolloff: -24,      // How steep the cutoff is (optional, but good for clarity)
+}).connect(comp)
 
 
 
+// make some effects
+const Dry = new Tone.Gain(2).connect(comp);
 
-			// send the Acousticplayer to all of the channels
-			const AcousticPlayerChannel = new Tone.Channel();
-			AcousticPlayerChannel.send("Dry", 0);
-			AcousticPlayerChannel.send("Sky", 0);
-			AcousticPlayerChannel.send("reverb", 0);
-			AcousticPlayer.connect(AcousticPlayerChannel);
+const DryChannel = new Tone.Channel({ volume: 10 }).connect(
+    Dry
+);
+DryChannel.receive("Dry");
 
-			// send the Electronicplayer to all of the channels
-			const ElectronicPlayerChannel = new Tone.Channel();
-			ElectronicPlayerChannel.send("Dry", -20);
-			ElectronicPlayerChannel.send("Sky", -20);
-			ElectronicPlayerChannel.send("reverb", -20);
-			ElectronicPlayer.connect(ElectronicPlayerChannel);
-
-			// send the Kit player to all of the channels
-			const KitPlayerChannel = new Tone.Channel();
-			KitPlayerChannel.send("Dry", 0);
-			KitPlayerChannel.send("Sky", 0);
-			KitPlayerChannel.send("reverb", 0);
-			KitPlayer.connect(KitPlayerChannel);
-
-			// send the sky player to all of the channels
-			const airPlayerChannel = new Tone.Channel();
-			KitPlayerChannel.send("Dry", 0);
-			airPlayerChannel.send("Sky", 0);
-			airPlayerChannel.send("reverb", 0);
-			airPlayer.connect(airPlayerChannel);
-
-			//send the busses to a 3d Panner????
-				
+const Sky = new Tone.Gain().connect(highpassFilter);
+const SkyChannel = new Tone.Channel({ volume: 0 }).connect(
+    Sky
+);
+SkyChannel.receive("Sky");
 
 
-			//add draws 
-			drawer()
-				.add({
-					tone: Dry,
-				})
-				.add({
-					tone: Sky,
-				})
-				.add({
-					tone: reverb,
-				});
-
-
-				
-// A flag to ensure audio starts only once
-let audioStarted = false;
-
-			    // Wait for all audio files to load before enabling playback controls
-            Tone.loaded().then(() => {
-                console.log("All audio files loaded!");
-
-
-           }).catch(error => {
-                // Catch any errors during loading, e.g., file not found
-                console.error("Error loading audio files:", error);
-            });
-
-
-//                document
- //                   .querySelector("#playButton")
- //                   .addEventListener("start", () => {
-//                        AcousticPlayer.start();
-//                        ElectronicPlayer.start();
-//						KitPlayer.start();
-//						airPlayer.start();
- ///                   });
-
- //               document
-  //                  .querySelector("#playButton")
-//                    .addEventListener("stop", () => {
-  //                      AcousticPlayer.stop();
- //                       ElectronicPlayer.stop();
-//						KitPlayer.stop();
-	//					airPlayer.stop();
-  //                  });
-
- 
+const reverb = new Tone.Reverb().connect(highpassFilter);
+const reverbChannel = new Tone.Channel({ volume: 0 }).connect(
+    reverb
+);
+reverbChannel.receive("reverb");
 
 
 
 
-			// bind the interface
-//			document
-//				.querySelector('[label="Dry"]')
-//				.addEventListener("input", (e) => {
-//					DryChannel.volume.value = parseFloat(e.target.value);
-//				});
-//			document
-//				.querySelector('[label="Sky"]')
-//				.addEventListener("input", (e) => {
-//					SkyChannel.volume.value = parseFloat(e.target.value);
-//				});
-//			document
-//				.querySelector('[label="Reverb"]')
-//				.addEventListener("input", (e) => {
-//					reverbChannel.volume.value = parseFloat(e.target.value);
-//				});
+// send the Acousticplayer to all of the channels
+const AcousticPlayerChannel = new Tone.Channel();
+AcousticPlayerChannel.send("Dry", 0);
+AcousticPlayerChannel.send("Sky", 0);
+AcousticPlayerChannel.send("reverb", 0);
+AcousticPlayer.connect(AcousticPlayerChannel);
+
+// send the Electronicplayer to all of the channels
+const ElectronicPlayerChannel = new Tone.Channel();
+ElectronicPlayerChannel.send("Dry", -20);
+ElectronicPlayerChannel.send("Sky", -20);
+ElectronicPlayerChannel.send("reverb", -20);
+ElectronicPlayer.connect(ElectronicPlayerChannel);
+
+// send the Kit player to all of the channels
+const KitPlayerChannel = new Tone.Channel();
+KitPlayerChannel.send("Dry", 0);
+KitPlayerChannel.send("Sky", 0);
+KitPlayerChannel.send("reverb", 0);
+KitPlayer.connect(KitPlayerChannel);
+
+// send the sky player to all of the channels
+const airPlayerChannel = new Tone.Channel();
+KitPlayerChannel.send("Dry", 0);
+airPlayerChannel.send("Sky", 0);
+airPlayerChannel.send("reverb", 0);
+airPlayer.connect(airPlayerChannel);
+
+//send the busses to a 3d Panner????
 
 
-                
+
+//add draws 
+drawer()
+    .add({
+        tone: Dry,
+    })
+    .add({
+        tone: Sky,
+    })
+    .add({
+        tone: reverb,
+    });
+
+
+
+// --- Loading Screen & Start Button Management ---
+let audioLoadedAndReady = false; // Flag for when Tone.js buffers are loaded
+let audioContextStarted = false; // Flag for when Tone.context has resumed
+
+function showStartButton() {
+    const loadingWatermark = document.getElementById('loadingWatermark');
+    const loadingText = document.getElementById('loadingText');
+    const startButton = document.getElementById('startButton');
+
+    if (loadingWatermark && loadingText && startButton) {
+        loadingText.textContent = "Ready to Play!";
+        loadingWatermark.classList.add('loaded'); // Add 'loaded' class to hide spinner
+        startButton.style.display = 'block'; // Show the button
+        console.log("Start button shown, spinner hidden.");
+    }
+}
+
+function hideLoadingScreen() {
+    const loadingWatermark = document.getElementById('loadingWatermark');
+    if (loadingWatermark) {
+        loadingWatermark.style.transition = 'opacity 0.5s ease-out';
+        loadingWatermark.style.opacity = '0';
+        loadingWatermark.addEventListener('transitionend', () => {
+            loadingWatermark.style.display = 'none';
+            console.log("Loading screen hidden.");
+        }, { once: true });
+    } else {
+        console.warn("Loading watermark element not found.");
+    }
+}
+
+function handleInteractionDrag(currentX, currentY) {
+    if (!audioContextStarted) {
+        console.warn("Drag: Audio context not started.");
+        return false;
+    }
+    if (draggedShape === null) { // This should ideally not happen if handleInteractionStart worked
+        console.warn("Drag: draggedShape is null.");
+        return false;
+    }
+    console.log(`Dragging shape: ${shapes[draggedShape].name}`);
+    // ... rest of your drag logic ...
+}
+
+// Function to start Tone.Transport and players
+function startPlayersAndTransport() {
+    if (Tone.Transport.state !== 'started') {
+        Tone.Transport.start();
+        AcousticPlayer.start();
+        ElectronicPlayer.start();
+        KitPlayer.start();
+        airPlayer.start(); // Changed AtmosPlayer to airPlayer based on your code
+        console.log("Audio playback (Tone.Transport and Players) started! ▶️");
+    } else {
+        console.log("Tone.Transport and Players were already started.");
+    }
+}
+
+// This function is now specifically called by the "Start Audio" button
+function handleStartButtonClick() {
+    // Only attempt to start if audio files are loaded and context hasn't been started yet
+    if (audioLoadedAndReady && !audioContextStarted) {
+        console.log("Start button clicked. Attempting to start audio context.");
+        Tone.start().then(() => {
+            console.log("Tone.context resumed successfully! 🔊");
+            audioContextStarted = true; // Mark context as started
+            startPlayersAndTransport(); // Start playback now
+            hideLoadingScreen(); // Hide the entire loading overlay after audio starts
+        }).catch(e => {
+            console.error("Error resuming Tone.context:", e);
+            alert("Failed to start audio. Please ensure your device's media volume is up and try again.");
+            // If context fails to start, you might want to show a retry button or error message
+        });
+    } else if (audioContextStarted) {
+        console.log("Audio context already started. Hiding loading screen.");
+        hideLoadingScreen(); // Just hide the loading screen if context is already running (e.g., on desktop)
+    } else {
+        console.warn("Start button clicked but audio not yet loaded. Please wait.");
+        // Could update loadingText here to "Still loading, please wait..."
+    }
+}
+
+
+// --- DOMContentLoaded for Loading & Initial Setup ---
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM Content Loaded.");
+
+    const startButton = document.getElementById('startButton');
+    if (startButton) {
+        startButton.addEventListener('click', handleStartButtonClick);
+        startButton.addEventListener('touchend', handleStartButtonClick); // Also listen for touchend for robustness
+        console.log("Start button listeners attached.");
+    } else {
+        console.error("Start button not found!");
+    }
+
+    // Wait for all Tone.Player buffers to load
+    Tone.loaded().then(() => {
+        console.log("All Tone.Player audio files loaded!");
+        audioLoadedAndReady = true; // Set flag
+        showStartButton(); // Display the start button and hide spinner
+    }).catch(error => {
+        console.error("Error loading audio files (Tone.loaded()):", error);
+        alert("Failed to load audio files. Please check paths and network console for errors.");
+        // If loading fails, still show the button, but it might not play sound.
+        // Or update loadingText here to indicate failure.
+        showStartButton();
+        const loadingText = document.getElementById('loadingText');
+        if (loadingText) loadingText.textContent = "Error loading audio. Try again?";
+    });
+});
+
 
 
 
@@ -182,8 +236,10 @@ let edge = 100;
 // when circle is at edge of rectangle
 let inner = edge + radius;
 
+let audioStarted = false; // Flag to track if audio context has started
+
 function setup() {
-  createCanvas(720, 720);
+  createCanvas(700, 400);
   noStroke();
 
   // Use radius mode to pass in radius as 3rd parameter for circle()
@@ -195,25 +251,6 @@ function setup() {
   describe(
     'Pink rectangle on a grey background. The cursor moves a white circle within the pink rectangle.'
   );
-
-
-   // --- IMPORTANT: Hide the loading watermark once audio assets are loaded ---
-    Tone.loaded().then(() => {
-        console.log("All audio files loaded!");
-        const loadingWatermark = document.getElementById('loadingWatermark');
-        if (loadingWatermark) {
-            loadingWatermark.style.display = 'none'; // Hide the watermark
-        }
-    }).catch(error => {
-        console.error("Error loading audio files:", error);
-        // Optionally, display an error message on the watermark if loading fails
-        const loadingWatermark = document.getElementById('loadingWatermark');
-        if (loadingWatermark) {
-            loadingWatermark.innerHTML = '<p style="color: red;">Error Loading Audio. Please refresh.</p>';
-        }
-    });
-
-
 }
 
 // --- p5.js mousePressed function ---
@@ -239,12 +276,31 @@ function mousePressed() {
     // For now, it only starts on the first click.
 }
 
+function touchStarted() {
+    if (touches.length > 0) {
+        // Same logic: if a shape is hit, prevent default. Otherwise, allow.
+        if (handleInteractionStart(touches[0].x, touches[0].y)) {
+            return false;
+        }
+    }
+    return true; // Allow default if no shape was touched or if touches.length is 0
+}
 
+function touchMoved() {
+    if (touches.length > 0) {
+        if (handleInteractionDrag(touches[0].x, touches[0].y)) {
+            return false;
+        }
+    }
+    return true;
+}
 
-
-
-
-
+function touchEnded() {
+    if (handleInteractionEnd()) {
+        return false;
+    }
+    return true;
+}
 
 
 function draw() {
@@ -262,20 +318,25 @@ function draw() {
   fill(255);
   circle(circleX, circleY, radius);
 
-// 124 [inner = Highest] 596 [height - inner = lowest]
+    const minVol = -40; // A quiet but audible volume in dB
+    const maxVol = 0;   // Full volume in dB
 
-// console.log(constrain(mouseY, inner, height - inner))
+     let GROUNDVolume = map(circleY, inner, height - inner, minVol, maxVol);
+     DryChannel.volume.value = GROUNDVolume;
 
-	const minVol = -40; // A quiet but audible volume in dB
-	const maxVol = 0;   // Full volume in dB
+    let HIGHVolume = map(circleY, inner, height - inner, maxVol, minVol);
+     SkyChannel.volume.value = HIGHVolume;
+     reverbChannel.volume.value = HIGHVolume;
 
-	 let GROUNDVolume = map(circleY, inner, height - inner, minVol, maxVol);
- 	 DryChannel.volume.value = GROUNDVolume;
-
-	let HIGHVolume = map(circleY, inner, height - inner, maxVol, minVol);
- 	 SkyChannel.volume.value = HIGHVolume;
- 	 reverbChannel.volume.value = HIGHVolume;
-
-
-
+    // Map circleX to reverb decay
+    // Decay values for Tone.Reverb are typically in seconds.
+    // A reasonable range might be from 0.5 seconds (short) to 10 seconds (long).
+    const minDecay = 0.5;
+    const maxDecay = 10;
+    
+    // The `circleX` ranges from `inner` (left) to `width - inner` (right).
+    // We want decay to increase as `circleX` goes right.
+    let reverbDecay = map(circleX, inner, width - inner, minDecay, maxDecay);
+    reverb.decay = reverbDecay;
 }
+

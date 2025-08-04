@@ -6,7 +6,7 @@
 
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1, maximum-scale=1"
+            content="user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width,height=device-height"
         />
         <link
             rel="icon"
@@ -25,105 +25,143 @@
         <style>
             body {
                 font-family: Arial, sans-serif;
-                margin: 0; /* Remove default body margin */
-                padding: 0; /* Remove default body padding */
+                margin: 0;
+                overflow-y: auto;
+                overflow-x: hidden;
+                touch-action: manipulation; /* Applied to body */
+                padding: 0;
                 background-color: #f4f4f4;
                 color: #333;
                 display: flex;
-                flex-direction: column; /* Arrange content vertically */
-                min-height: 100vh; /* Ensure body takes full viewport height */
-                justify-content: space-between; /* Push nav to bottom */
-                align-items: center; /* Center content horizontally */
+                flex-direction: column;
+                min-height: 10vh;
+                align-items: center;
+                overflow: hidden; /* Prevents both horizontal and vertical scrollbars */
+                height: 100%; /* Ensures the body truly takes up 100% of the viewport height */
             }
 
             h1 {
                 color: #0056b3;
                 text-align: center;
-                margin-top: 20px; /* Add some space from the top */
+                margin-top: 20px;
+                margin-bottom: 10px;
             }
 
-            /* --- Canvas and Play Button Container --- */
+            /* Main content area for layout: Left Links | Canvas | Right Links */
+            #main-content {
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                flex-grow: 1;
+                padding: 10px 0;
+                box-sizing: border-box;
+                position: relative;
+            }
+
+            /* --- Canvas Container --- */
             .p5-container {
                 display: flex;
-                flex-direction: column; /* Stack canvas and button vertically */
-                align-items: center; /* Center them horizontally */
-                margin-bottom: 20px; /* Space between canvas/button and nav */
-                flex-grow: 1; /* Allow this container to take available space */
-                justify-content: center; /* Vertically center within available space */
-            }
-
-            /* Style for the p5.js canvas (default by p5) */
-            canvas {
-                display: block; /* Remove extra space below canvas */
-                border: 1px solid #ccc; /* Optional: Add a border for visibility */
-                margin-bottom: 15px; /* Space between canvas and play button */
-            }
-
-         
-
-            /* --- Navigation Styling --- */
-            nav {
-                width: 100%; /* Take full width */
-                background-color: #e9e9e9; /* Light background for nav bar */
-                padding: 15px 0;
-                text-align: center;
-                box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Shadow at the top */
-            }
-
-            nav ul {
-                list-style: none;
-                padding: 0;
-                margin: 0; /* Remove default ul margin */
-                display: flex;
-                flex-wrap: wrap;
+                flex-direction: column;
+                align-items: center;
                 justify-content: center;
-                gap: 20px; /* Spacing between navigation items */
+                flex-grow: 2;
+                padding: 0 10px;
+                box-sizing: border-box;
             }
 
-            nav a {
+            canvas {
                 display: block;
-                padding: 10px 15px;
-                text-decoration: none;
+                border: 1px solid #ccc;
+                touch-action: manipulation;
+                max-width: 100%;
+                height: auto;
+            }
+
+            /* --- Project Container Styling --- */
+            .project-container {
+                width: 90%;
+                max-width: 800px;
+                margin: 20px auto 40px auto;
+                padding: 20px;
+                background-color: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                line-height: 1.6;
+                box-sizing: border-box;
+            }
+
+            .project-container ul {
+                list-style: disc;
+                margin-left: 20px;
+                padding: 0;
+                margin-bottom: 10px;
+            }
+
+            .project-container li {
+                margin-bottom: 5px;
+            }
+
+            .project-container a {
                 color: #007bff;
+                text-decoration: none;
                 font-weight: bold;
-                font-size: 1em;
-                border: 1px solid #007bff;
-                border-radius: 5px;
-                transition: all 0.3s ease;
             }
 
-            nav a:hover {
-                background-color: #007bff;
-                color: white;
+            .project-container a:hover {
+                text-decoration: underline;
             }
-
 
             /* --- Loading Watermark Styles --- */
             #loadingWatermark {
-                position: fixed; /* Fixed position relative to the viewport */
+                position: fixed;
                 top: 0;
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background-color: rgba(0, 0, 0, 0.9); /* Semi-transparent black background */
+                background-color: #333;
                 color: white;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                font-family: sans-serif;
                 font-size: 2em;
-                display: flex; /* Use flexbox for centering content */
-                justify-content: center; /* Horizontally center */
-                align-items: center; /* Vertically center */
-                z-index: 1000; /* Ensure it's on top of everything */
-                text-align: center;
-                flex-direction: column; /* Stack text and spinner */
+                z-index: 1000;
+                transition: opacity 0.5s ease-out;
             }
 
             #loadingWatermark .spinner {
-                border: 8px solid #f3f3f3; /* Light grey */
-                border-top: 8px solid #3498db; /* Blue */
+                border: 8px solid #f3f3f3;
+                border-top: 8px solid #3498db;
                 border-radius: 50%;
                 width: 50px;
                 height: 50px;
-                animation: spin 1s linear infinite; /* Spin animation */
+                animation: spin 1s linear infinite;
                 margin-top: 20px;
+                display: block;
+            }
+
+            #loadingWatermark.loaded .spinner {
+                display: none;
+            }
+
+            #startButton {
+                margin-top: 20px;
+                padding: 15px 30px;
+                font-size: 1.2em;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+                display: none;
+            }
+
+            #startButton:hover {
+                background-color: #0056b3;
             }
 
             @keyframes spin {
@@ -131,40 +169,232 @@
                 100% { transform: rotate(360deg); }
             }
 
+            /* --- Dropdown Menu Styles --- */
+            .navbar {
+                width: 100%;
+                background-color: #333;
+                padding: 10px 0;
+                text-align: center;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                margin-bottom: 20px;
+            }
+
+            .dropdown {
+                position: relative;
+                display: inline-block;
+            }
+
+            .dropbtn {
+                background-color: #007bff;
+                color: white;
+                padding: 12px 20px;
+                font-size: 1em;
+                border: none;
+                cursor: pointer;
+                border-radius: 5px;
+                transition: background-color 0.3s ease;
+                touch-action: manipulation; /* Explicitly apply to the button */
+            }
+
+            .dropbtn:hover, .dropbtn:focus {
+                background-color: #0056b3;
+            }
+
+            .dropdown-content {
+                display: none;
+                position: absolute;
+                background-color: #f9f9f9;
+                min-width: 160px;
+                box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+                z-index: 1;
+                left: 50%;
+                transform: translateX(-50%);
+                border-radius: 5px;
+                overflow: hidden;
+            }
+
+            .dropdown-content a {
+                color: black;
+                padding: 12px 16px;
+                text-decoration: none;
+                display: block;
+                text-align: left;
+                transition: background-color 0.2s;
+                touch-action: manipulation; /* Explicitly apply to the links */
+            }
+
+            .dropdown-content a:hover {
+                background-color: #ddd;
+            }
+
+            /* Use .show class for JavaScript toggle */
+            .dropdown-content.show {
+                display: block;
+            }
+
+            /* Responsive Adjustments for Smaller Screens */
+            @media (max-width: 768px) {
+                h1 {
+                    font-size: 1.8em;
+                    margin-top: 10px;
+                }
+
+                #main-content {
+                    flex-direction: column;
+                    padding: 5px;
+                }
+
+                .p5-container {
+                    padding: 5px;
+                    margin-bottom: 10px;
+                }
+
+                .project-container {
+                    width: 95%;
+                    padding: 15px;
+                    margin: 15px auto 30px auto;
+                }
+
+                .navbar {
+                    padding: 5px 0;
+                    margin-bottom: 10px;
+                }
+
+                .dropbtn {
+                    padding: 10px 15px;
+                    font-size: 0.9em;
+                }
+
+                .dropdown-content {
+                    min-width: 140px;
+                }
+            }
         </style>
     </head>
 
     <body>
-		 <div id="loadingWatermark">
-            <p>Loading Audio...</p>
+        <div id="loadingWatermark">
+            <p id="loadingText">Loading Audio...</p>
             <div class="spinner"></div>
+            <button id="startButton">Start Audio</button>
+        </div>
+
+        <div class="navbar">
+            <div class="dropdown">
+                <button class="dropbtn" id="albumDropdownBtn">The Accountant's Vision</button>
+                <div class="dropdown-content" id="albumDropdownContent">
+                    <a href="1.Colours.html">Colours</a>
+                    <a href="2.DragonRide.html">Dragon Ride</a>
+                    <a href="3.Fossa.html">Fossa</a>
+                    <a href="4.Nowhere.html">Nowhere</a>
+                    <a href="5.TalkingBoats.html">Talking Boats</a>
+                    <a href="6.ThreeBoats.html">Three Boats</a>
+                </div>
+            </div>
         </div>
 
         <h1>Dragon Ride</h1>
 
-     
+        <div id="main-content">
+            <div class="p5-container" id="canvas-container"></div>
+        </div>
 
         <script src="./script/DragonRide.js"></script>
 
-        <nav>
-            <ul>
-                <li><a href="1.Colours.html">Colours</a></li>
-                <li><a href="2.DragonRide.html">Dragon Ride</a></li>
-                <li><a href="3.Fossa.html">Fossa</a></li>
-                <li><a href="4.Nowhere.html">Nowhere</a></li>
-                <li><a href="5.TalkingBoats.html">Talking Boats</a></li>
-                <li><a href="6.ThreeBoats.html">Three Boats</a></li>
-            </ul>
-        </nav>
+      <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropbtn = document.getElementById('albumDropdownBtn');
+        const dropdownContent = document.getElementById('albumDropdownContent');
+        const dropdownContainer = dropbtn.parentNode; // The .dropdown div
 
-                <div class="project-container">
-           
+        if (dropbtn && dropdownContent && dropdownContainer) {
 
-            <ul>
-            <li> The draggable shape will be replaced with a dragon. </li>
-            <li> The dragon is high in the sky or near the ground.  </li>
-            </ul>
-                 <li><a href="https://github.com/ollie5549/ACCOUNTANTS-VISION-INTERACTIVE-ALBUM">GitHub repository</a></li>
-        </div>
+            // Cache all dropdown links
+            const dropdownLinks = dropdownContent.querySelectorAll('a');
+
+            // Function to toggle dropdown visibility (used by click/tap)
+            const toggleDropdown = function(event) {
+                // Prevent event from bubbling up to window and immediately closing
+                event.stopPropagation();
+                dropdownContent.classList.toggle('show');
+            };
+
+            // Event listener for the dropdown button
+            // This handles both desktop clicks and mobile taps
+            dropbtn.addEventListener('click', toggleDropdown);
+            dropbtn.addEventListener('touchend', function(event) {
+                // Prevent default tap behavior to avoid synthetic click and double-toggle
+                // This is crucial for the button itself to prevent unwanted behavior.
+                event.preventDefault();
+                event.stopPropagation();
+                toggleDropdown(event); // Call the toggle function
+            }, { passive: false }); // passive: false is crucial for preventDefault() to work
+
+            // --- IMPORTANT: Handle Taps on Links Directly ---
+            dropdownLinks.forEach(link => {
+                // For direct link taps:
+                link.addEventListener('touchend', function(event) {
+                    // Prevent default to stop synthetic click, IF AND ONLY IF we plan to navigate manually
+                    // For direct navigation, we typically don't preventDefault here
+                    // if the link itself is meant to be followed.
+                    // The goal is to ensure the browser's default link-following behavior is not suppressed.
+
+                    // If you're encountering phantom clicks or other weirdness:
+                    // event.preventDefault(); // Uncomment if you suspect a phantom click is interfering
+                    event.stopPropagation(); // Stop event from bubbling up to window or parent dropdown.
+
+                    // If you call preventDefault() above, you MUST manually navigate:
+                    // window.location.href = this.href;
+                    // console.log("Manual navigation to: " + this.href);
+
+                    // Otherwise, rely on the browser's default click behavior (which will fire after touchend)
+                    // If the problem is that the *click* event isn't firing, then force navigation.
+                    // If `return false;` in p5.js or other `preventDefault` is global, this manual navigation is a fallback.
+                    console.log("Link touchend detected for: " + this.href);
+                    
+                    // Allow a tiny delay to ensure all other DOM processing for touch is done
+                    // before forcing navigation. This can sometimes help.
+                    setTimeout(() => {
+                         window.location.href = this.href;
+                    }, 50); // Small delay
+
+                    // Immediately close the dropdown after tapping a link
+                    dropdownContent.classList.remove('show');
+
+                }, { passive: false }); // Needs to be false if you ever use preventDefault()
+
+                // Optional: For very old Android browsers that might not respond to touchend
+                // and if the click is consistently being swallowed, a very direct approach:
+                link.addEventListener('click', function(event) {
+                    // This listener is typically redundant if touchend works,
+                    // but it's a fallback. If touchend + preventDefault is used,
+                    // a synthetic click might not fire.
+                    console.log("Link click detected for: " + this.href);
+                    event.stopPropagation(); // Stop it from closing dropdown if it propagated to window
+                    // The browser's default action (following the link) should happen.
+                });
+            });
+            // --- END IMPORTANT ---
+
+
+            // Close dropdown if clicked/tapped outside
+            window.addEventListener('click', function(event) {
+                // If the target is not part of the dropdown and the dropdown is open, close it.
+                if (!event.target.closest('.dropdown') && dropdownContent.classList.contains('show')) {
+                    dropdownContent.classList.remove('show');
+                }
+            });
+            window.addEventListener('touchend', function(event) {
+                // Similar logic for touchend to close dropdown on outside tap
+                // Be extremely careful with preventDefault() here if you're not navigating something specific.
+                // It can prevent other elements' default touch behaviors (like scrolling).
+                if (!event.target.closest('.dropdown') && dropdownContent.classList.contains('show')) {
+                    dropdownContent.classList.remove('show');
+                }
+            }, { passive: false }); // Still set passive: false if `closest` method might require `preventDefault`
+        }
+        
+    });
+</script>
     </body>
 </html>

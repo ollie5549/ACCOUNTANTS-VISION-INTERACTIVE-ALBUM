@@ -17,9 +17,14 @@ let audioOffTimers = []; // Added for auto-unpress audio
 let keys; // Tone.Players instance
 let currentStep = 0; // For sequencing playback
 let lastDraggedCell = { row: -1, col: -1 };
+// A flag to ensure audio starts only once
+let audioStarted = false;
+
+
+
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(700, 400);
 
   // Initialize cell dimensions immediately after canvas creation
   cellWidth = width / GRID_COLS;
@@ -106,8 +111,6 @@ function setup() {
   }, "16n"); // Repeat every 16th note
 }
 
-// A flag to ensure audio starts only once
-let audioStarted = false;
 
 // Wait for all audio files to load before enabling playback controls
 Tone.loaded().then(() => {
@@ -116,6 +119,86 @@ Tone.loaded().then(() => {
   // Catch any errors during loading, e.g., file not found
   console.error("Error loading audio files:", error);
 });
+
+
+
+
+
+
+
+// Function to start Tone.Transport and players
+function startPlayersAndTransport() {
+    if (Tone.Transport.state !== 'started') {
+        Tone.Transport.start();
+        AcousticPlayer.start();
+        AtmosPlayer.start();
+        ElectronicPlayer.start();
+        console.log("Audio playback (Tone.Transport and Players) started! ▶️");
+    } else {
+        console.log("Tone.Transport and Players were already started.");
+    }
+}
+
+// This function is now specifically called by the "Start Audio" button
+function handleStartButtonClick() {
+    // Only attempt to start if audio files are loaded and context hasn't been started yet
+    if (audioLoadedAndReady && !audioContextStarted) {
+        console.log("Start button clicked. Attempting to start audio context.");
+        Tone.start().then(() => {
+            console.log("Tone.context resumed successfully! 🔊");
+            audioContextStarted = true; // Mark context as started
+            startPlayersAndTransport(); // Start playback now
+            hideLoadingScreen(); // Hide the entire loading overlay after audio starts
+        }).catch(e => {
+            console.error("Error resuming Tone.context:", e);
+            alert("Failed to start audio. Please ensure your device's media volume is up and try again.");
+            // If context fails to start, you might want to show a retry button or error message
+        });
+    } else if (audioContextStarted) {
+        console.log("Audio context already started. Hiding loading screen.");
+        hideLoadingScreen(); // Just hide the loading screen if context is already running (e.g., on desktop)
+    } else {
+        console.warn("Start button clicked but audio not yet loaded. Please wait.");
+        // Could update loadingText here to "Still loading, please wait..."
+    }
+}
+
+
+// --- DOMContentLoaded for Loading & Initial Setup ---
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM Content Loaded.");
+
+    const startButton = document.getElementById('startButton');
+    if (startButton) {
+        startButton.addEventListener('click', handleStartButtonClick);
+        startButton.addEventListener('touchend', handleStartButtonClick); // Also listen for touchend for robustness
+        console.log("Start button listeners attached.");
+    } else {
+        console.error("Start button not found!");
+    }
+
+    // // Wait for all Tone.Player buffers to load
+    // Tone.loaded().then(() => {
+    //     console.log("All Tone.Player audio files loaded!");
+    //     audioLoadedAndReady = true; // Set flag
+    //     showStartButton(); // Display the start button and hide spinner
+    // }).catch(error => {
+    //     console.error("Error loading audio files (Tone.loaded()):", error);
+    //     alert("Failed to load audio files. Please check paths and network console for errors.");
+    //     // If loading fails, still show the button, but it might not play sound.
+    //     // Or update loadingText to indicate failure.
+    //     showStartButton();
+    //     const loadingText = document.getElementById('loadingText');
+    //     if (loadingText) loadingText.textContent = "Error loading audio. Try again?";
+    // });
+});
+
+
+
+
+
+
+
 
 function draw() {
   background(0); // Sets the canvas background to black
@@ -230,6 +313,54 @@ function mousePressed() {
 
   return false; // Prevent default browser behavior (e.g., right-click context menu)
 }
+
+
+
+
+function touchStarted() {
+  nextParticleFrame = frameCount;
+  paths.push(new Path());
+
+  // Reset previous particle position to mouse for p5.js particles
+  previousParticlePosition.set(mouseX, mouseY);
+  createParticle();
+
+  // Handle sequencer grid click
+  let col = floor(mouseX / cellWidth);
+  let row = floor(mouseY / cellHeight);
+  toggleSequencerCell(col, row);
+
+  // Reset lastDraggedCell when a new click starts
+  lastDraggedCell = { row: row, col: col };
+
+  // Check if the audio context has not started yet
+  if (!audioStarted) {
+    // Start the Tone.js audio context
+    Tone.start().then(() => {
+      console.log("Audio context started by canvas click!");
+      audioStarted = true;
+      // Set flag to true
+      // Start all your players
+      Tone.Transport.bpm.value = 61;
+      Tone.Transport.start();
+
+      // Schedule BPM changes
+      Tone.Transport.schedule((time) => {
+        Tone.Transport.bpm.setValueAtTime(102, time);
+      }, "4:2:0");
+
+      Tone.Transport.schedule((time) => {
+        Tone.Transport.bpm.setValueAtTime(144, time);
+      }, "19:2:0");
+    }).catch(e => {
+      console.error("Error starting Tone.js context:", e);
+    });
+  }
+
+  return false; // Prevent default browser behavior (e.g., right-click context menu)
+}
+
+
 
 function mouseDragged() {
   // Handle sequencer grid drag
