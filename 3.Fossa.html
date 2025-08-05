@@ -28,7 +28,7 @@
                 margin: 0;
                 overflow-y: auto;
                 overflow-x: hidden;
-                touch-action: manipulation; /* Applied to body */
+                /* Removed touch-action: manipulation; from body */
                 padding: 0;
                 background-color: #f4f4f4;
                 color: #333;
@@ -74,7 +74,7 @@
             canvas {
                 display: block;
                 border: 1px solid #ccc;
-                touch-action: manipulation;
+                touch-action: manipulation; /* Kept on canvas */
                 max-width: 100%;
                 height: auto;
             }

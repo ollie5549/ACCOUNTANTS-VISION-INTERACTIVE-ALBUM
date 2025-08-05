@@ -241,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // p5.js Sketch
 // =================================================================
 let frameCount = 0;
+let p5CanvasElement; // Declare a global variable to hold the p5 canvas DOM element
 
 function setRotation(angle) {
     Tone.Listener.forwardX.value = Math.sin(angle);
@@ -251,10 +252,29 @@ function setRotation(angle) {
 let snake;
 
 function setup() {
-    createCanvas(canvasWidth, canvasHeight, WEBGL);
+    // Create the canvas and parent it to the designated container
+    const canvasContainer = document.getElementById('canvas-container');
+    const p5Canvas = createCanvas(canvasWidth, canvasHeight, WEBGL);
+    if (canvasContainer) {
+        p5Canvas.parent(canvasContainer);
+        p5CanvasElement = p5Canvas.elt; // Store the actual DOM element
+    } else {
+        console.error("Canvas container not found!");
+    }
+
     angleMode(DEGREES);
     buildSnake();
     describe('A tiled plane of snake models');
+
+    // Add a direct touchstart listener to the canvas DOM element
+    // This can be more reliable for triggering actions on mobile
+    if (p5CanvasElement) {
+        p5CanvasElement.addEventListener('touchstart', (event) => {
+            event.preventDefault(); // Prevent default touch actions like scrolling/zooming
+            handleCanvasPress();
+            console.log("Direct touchstart on canvas detected!");
+        }, { passive: false }); // Use passive: false to allow preventDefault
+    }
 }
 
 function buildSnake() {
@@ -323,7 +343,13 @@ function draw() {
     }
 }
 
-function mousePressed() {
+/**
+ * Handles the interaction logic when the canvas is pressed,
+ * whether by a mouse click or a touch.
+ */
+function handleCanvasPress() {
+    // No need for mouseX/Y boundary checks here, as the event listener
+    // is directly on the canvas element itself.
     buildSnake();
 
     const orbitRadius = 5;
@@ -339,11 +365,31 @@ function mousePressed() {
 
     if (!audioContextStarted) {
         Tone.start().then(() => {
-            console.log("Audio context started by canvas click!");
+            console.log("Audio context started by canvas press!");
             audioContextStarted = true;
             Tone.Transport.start();
         }).catch(e => {
             console.error("Error starting Tone.js context:", e);
         });
     }
+}
+
+/**
+ * p5.js function that is called when the mouse is pressed.
+ * This will still handle desktop clicks.
+ */
+function mousePressed() {
+    handleCanvasPress();
+}
+
+/**
+ * p5.js function that is called when a touch event starts on the canvas.
+ * While a direct DOM listener is added, this p5.js function is kept for completeness.
+ * The `return false` is crucial here to prevent default browser behavior.
+ */
+function touchStarted() {
+    // The direct DOM listener for 'touchstart' is now the primary handler for mobile.
+    // However, keeping this p5.js function and returning false is good practice
+    // to ensure p5.js itself doesn't trigger unwanted default touch behaviors.
+    return false;
 }
