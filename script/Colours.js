@@ -16,6 +16,9 @@ const ElectronicPlayer = new Tone.Player({
     loop: true,
 }).sync();
 
+// Create a list of players for easier iteration
+const players = [AcousticPlayer, AtmosPlayer, ElectronicPlayer];
+
 // Create separate Tone.Channels for each player to control their individual volumes
 const AcousticVolumeChannel = new Tone.Channel();
 const AtmosVolumeChannel = new Tone.Channel();
@@ -61,24 +64,64 @@ DryVolumeChannel.connect(crossFade.b);
 // Set initial crossfade value (e.g., balanced dry/wet)
 crossFade.fade.value = 0.5;
 
+// --- Function to generate a random number within a specified range ---
+function getRandomNumber(min, max) {
+    return Math.random() * (max - min) + min;
+}
 
+// --- Randomization Function for Stems ---
+/**
+ * Randomizes the starting time and playback rate of each player and starts the transport.
+ * @param {number} maxOffset - The maximum possible delay in seconds for a stem.
+ * @param {number} minRate - The minimum playback rate (e.g., 0.8 for half speed).
+ * @param {number} maxRate - The maximum playback rate (e.g., 1.2 for double speed).
+ */
+function randomizeAndStart(maxOffset = 4, minRate = 0.8, maxRate = 1.2) {
+    if (Tone.Transport.state === 'started') {
+        console.log("Audio already playing. Stopping before randomizing.");
+        Tone.Transport.stop();
+        // Stop all players to reset them
+        players.forEach(player => player.stop());
+    }
 
+    // Set a random tempo for the entire transport
+    const randomTempo = getRandomNumber(40, 120);
+    Tone.Transport.bpm.value = randomTempo;
+
+    // Start all players with a random delay and a random playback rate
+    players.forEach(player => {
+        const randomDelay = getRandomNumber(0, maxOffset);
+        const randomRate = getRandomNumber(minRate, maxRate);
+
+        // Set the random playback rate
+        player.playbackRate = randomRate;
+
+        // Use `start()` with a time offset relative to the transport's start
+        player.start(`+${randomDelay}`);
+        console.log(`Player starting at: +${randomDelay.toFixed(2)}s with speed: ${randomRate.toFixed(2)}x`);
+    });
+
+    Tone.Transport.start();
+    console.log("Randomized playback started!");
+}
 
 
 // --- Loading Screen & Start Button Management ---
 let audioLoadedAndReady = false; // Flag for when Tone.js buffers are loaded
 let audioContextStarted = false; // Flag for when Tone.context has resumed
 
-function showStartButton() {
+function showButtons() {
     const loadingWatermark = document.getElementById('loadingWatermark');
     const loadingText = document.getElementById('loadingText');
     const startButton = document.getElementById('startButton');
+    const randomizeButton = document.getElementById('randomizeButton');
 
-    if (loadingWatermark && loadingText && startButton) {
+    if (loadingWatermark && loadingText && startButton && randomizeButton) {
         loadingText.textContent = "Ready to Play!";
         loadingWatermark.classList.add('loaded'); // Add 'loaded' class to hide spinner
         startButton.style.display = 'block'; // Show the button
-        console.log("Start button shown, spinner hidden.");
+        randomizeButton.style.display = 'block'; // Show the new button
+        console.log("Start and Randomize buttons shown, spinner hidden.");
     }
 }
 
@@ -90,39 +133,14 @@ function hideLoadingScreen() {
         loadingWatermark.addEventListener('transitionend', () => {
             loadingWatermark.style.display = 'none';
             console.log("Loading screen hidden.");
-        }, { once: true });
+        }, {
+            once: true
+        });
     } else {
         console.warn("Loading watermark element not found.");
     }
 }
 
-function handleInteractionDrag(currentX, currentY) {
-    if (!audioContextStarted) {
-        console.warn("Drag: Audio context not started.");
-        return false;
-    }
-    if (draggedShape === null) { // This should ideally not happen if handleInteractionStart worked
-        console.warn("Drag: draggedShape is null.");
-        return false;
-    }
-    console.log(`Dragging shape: ${shapes[draggedShape].name}`);
-    // ... rest of your drag logic ...
-}
-
-// Function to start Tone.Transport and players
-function startPlayersAndTransport() {
-    if (Tone.Transport.state !== 'started') {
-        Tone.Transport.start();
-        AcousticPlayer.start();
-        AtmosPlayer.start();
-        ElectronicPlayer.start();
-        console.log("Audio playback (Tone.Transport and Players) started! ▶️");
-    } else {
-        console.log("Tone.Transport and Players were already started.");
-    }
-}
-
-// This function is now specifically called by the "Start Audio" button
 function handleStartButtonClick() {
     // Only attempt to start if audio files are loaded and context hasn't been started yet
     if (audioLoadedAndReady && !audioContextStarted) {
@@ -135,42 +153,103 @@ function handleStartButtonClick() {
         }).catch(e => {
             console.error("Error resuming Tone.context:", e);
             alert("Failed to start audio. Please ensure your device's media volume is up and try again.");
-            // If context fails to start, you might want to show a retry button or error message
         });
     } else if (audioContextStarted) {
         console.log("Audio context already started. Hiding loading screen.");
-        hideLoadingScreen(); // Just hide the loading screen if context is already running (e.g., on desktop)
+        hideLoadingScreen(); // Just hide the loading screen if context is already running
     } else {
         console.warn("Start button clicked but audio not yet loaded. Please wait.");
-        // Could update loadingText here to "Still loading, please wait..."
     }
 }
 
+let hasBroken = false; // Flag to track if the 'break it' button has been clicked before
+
+/**
+ * Inverts all colors on the page by adding a CSS filter to the body.
+ */
+function invertColors() {
+    const body = document.body;
+    if (body) {
+        body.style.filter = 'invert(1)';
+        body.style.transition = 'filter 0.5s ease-in-out';
+        console.log("Colors inverted!");
+    }
+}
+
+
+/**
+ * Main function for the "break it" button.
+ * It randomizes both the audio stems and the visual positions of the shapes.
+ */
+function handleRandomizeButtonClick() {
+    if (!audioLoadedAndReady) {
+        console.warn("Randomize button clicked, but audio not yet loaded. Please wait.");
+        return;
+    }
+
+    if (!hasBroken) {
+        invertColors();
+        hasBroken = true;
+    }
+
+    if (!audioContextStarted) {
+        Tone.start().then(() => {
+            console.log("Tone.context resumed successfully! 🔊");
+            audioContextStarted = true;
+            randomizeAndStart();
+            randomizeShapePositions(); // NEW: Randomize shape positions
+            hideLoadingScreen();
+        }).catch(e => {
+            console.error("Error resuming Tone.context:", e);
+        });
+    } else {
+        randomizeAndStart();
+        randomizeShapePositions(); // NEW: Randomize shape positions
+    }
+}
+
+function startPlayersAndTransport() {
+    if (Tone.Transport.state !== 'started') {
+        Tone.Transport.start();
+        players.forEach(player => player.start());
+        console.log("Audio playback (Tone.Transport and Players) started! ▶️");
+    } else {
+        console.log("Tone.Transport and Players were already started.");
+    }
+}
 
 // --- DOMContentLoaded for Loading & Initial Setup ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Content Loaded.");
 
     const startButton = document.getElementById('startButton');
+    const randomizeButton = document.getElementById('randomizeButton');
+
     if (startButton) {
         startButton.addEventListener('click', handleStartButtonClick);
-        startButton.addEventListener('touchend', handleStartButtonClick); // Also listen for touchend for robustness
+        startButton.addEventListener('touchend', handleStartButtonClick);
         console.log("Start button listeners attached.");
     } else {
         console.error("Start button not found!");
+    }
+
+    if (randomizeButton) {
+        randomizeButton.addEventListener('click', handleRandomizeButtonClick);
+        randomizeButton.addEventListener('touchend', handleRandomizeButtonClick);
+        console.log("Randomize button listeners attached.");
+    } else {
+        console.error("Randomize button not found!");
     }
 
     // Wait for all Tone.Player buffers to load
     Tone.loaded().then(() => {
         console.log("All Tone.Player audio files loaded!");
         audioLoadedAndReady = true; // Set flag
-        showStartButton(); // Display the start button and hide spinner
+        showButtons(); // Display the start and randomize buttons
     }).catch(error => {
         console.error("Error loading audio files (Tone.loaded()):", error);
         alert("Failed to load audio files. Please check paths and network console for errors.");
-        // If loading fails, still show the button, but it might not play sound.
-        // Or update loadingText to indicate failure.
-        showStartButton();
+        showButtons();
         const loadingText = document.getElementById('loadingText');
         if (loadingText) loadingText.textContent = "Error loading audio. Try again?";
     });
@@ -192,18 +271,72 @@ function setup() {
     angleMode(DEGREES);
     normalMaterial();
 
-    shapes = [
-        { name: 'plane', x: -width / 4, y: -height / 8, size: 100, rotX: 0, rotY: 0, rotZ: 0 },
-        { name: 'box', x: width / 4, y: -height / 8, size: 80, rotX: 0, rotY: 0, rotZ: 0 },
-        { name: 'torus', x: -width / 4, y: height / 8, size: 100, rotX: 0, rotY: 0, rotZ: 0 },
-        { name: 'sphere', x: width / 4, y: height / 8, size: 120, rotX: 0, rotY: 0, rotZ: 0 },
-    ];
+    initializeShapes();
 
     describe(
         'Four 3D shapes: a plane, box, torus, and sphere. Each shape is static. ' +
         'Clicking/Touching and dragging a shape rotates it in 3D. ' +
         'Rotating specific shapes controls audio effects: box for reverb, torus for auto-filter, plane for chorus, and sphere for dry/wet mix.'
     );
+}
+
+// NEW: Function to initialize or reset shapes to their default positions
+function initializeShapes() {
+    shapes = [{
+        name: 'plane',
+        x: -width / 4,
+        y: -height / 8,
+        size: 100,
+        rotX: 0,
+        rotY: 0,
+        rotZ: 0
+    }, {
+        name: 'box',
+        x: width / 4,
+        y: -height / 8,
+        size: 80,
+        rotX: 0,
+        rotY: 0,
+        rotZ: 0
+    }, {
+        name: 'torus',
+        x: -width / 4,
+        y: height / 8,
+        size: 100,
+        rotX: 0,
+        rotY: 0,
+        rotZ: 0
+    }, {
+        name: 'sphere',
+        x: width / 4,
+        y: height / 8,
+        size: 120,
+        rotX: 0,
+        rotY: 0,
+        rotZ: 0
+    }, ];
+}
+
+// NEW: Function to randomize the positions of the shapes
+function randomizeShapePositions() {
+    const margin = 50; // Ensure shapes don't go off screen
+    const xPositions = [-width / 4, width / 4];
+    const yPositions = [-height / 8, height / 8];
+    const shuffledPositions = shuffle([
+        [xPositions[0], yPositions[0]],
+        [xPositions[1], yPositions[0]],
+        [xPositions[0], yPositions[1]],
+        [xPositions[1], yPositions[1]],
+    ]);
+
+    for (let i = 0; i < shapes.length; i++) {
+        shapes[i].x = shuffledPositions[i][0];
+        shapes[i].y = shuffledPositions[i][1];
+        shapes[i].rotX = random(-180, 180);
+        shapes[i].rotY = random(-180, 180);
+        shapes[i].rotZ = random(-180, 180);
+    }
+    console.log("Shapes randomized.");
 }
 
 function draw() {
@@ -216,10 +349,27 @@ function draw() {
         rotateZ(s.rotZ);
     }
 
-    push(); translate(shapes[0].x, shapes[0].y, 0); applyShapeRotation(0); plane(shapes[0].size); pop();
-    push(); translate(shapes[1].x, shapes[1].y, 0); applyShapeRotation(1); box(shapes[1].size); pop();
-    push(); translate(shapes[2].x, shapes[2].y, 0); applyShapeRotation(2); torus(shapes[2].size / 2 - 10, shapes[2].size / 5); pop();
-    push(); translate(shapes[3].x, shapes[3].y, 0); applyShapeRotation(3); stroke(0); sphere(shapes[3].size / 2); pop();
+    push();
+    translate(shapes[0].x, shapes[0].y, 0);
+    applyShapeRotation(0);
+    plane(shapes[0].size);
+    pop();
+    push();
+    translate(shapes[1].x, shapes[1].y, 0);
+    applyShapeRotation(1);
+    box(shapes[1].size);
+    pop();
+    push();
+    translate(shapes[2].x, shapes[2].y, 0);
+    applyShapeRotation(2);
+    torus(shapes[2].size / 2 - 10, shapes[2].size / 5);
+    pop();
+    push();
+    translate(shapes[3].x, shapes[3].y, 0);
+    applyShapeRotation(3);
+    stroke(0);
+    sphere(shapes[3].size / 2);
+    pop();
 }
 
 // --- Unified Interaction Handlers for Mouse and Touch ---
@@ -251,10 +401,10 @@ function handleInteractionStart(inputX, inputY) {
                 prevTouchY = inputY;
             }
             console.log(`Interaction started on ${shape.name}.`);
-            return true;
+            return false; // Prevent default behavior
         }
     }
-    return false;
+    return true; // Allow default behavior
 }
 
 function handleInteractionDrag(currentX, currentY) {
@@ -287,9 +437,12 @@ function handleInteractionDrag(currentX, currentY) {
         const audioSensitivity = 5.0;
 
         if (currentShape.name === 'box') {
-            const decayMin = 0.5, decayMax = 20;
-            const wetMin = 0., wetMax = 1.;
-            const partialMin = 0., partialMax = 1.;
+            const decayMin = 0.5,
+                decayMax = 20;
+            const wetMin = 0.,
+                wetMax = 1.;
+            const partialMin = 0.,
+                partialMax = 1.;
 
             let mappedDecay = map(currentShape.rotY % 360, -180, 180, decayMin, decayMax);
             reverb.decay = constrain(mappedDecay, decayMin, decayMax);
@@ -304,10 +457,14 @@ function handleInteractionDrag(currentX, currentY) {
         }
 
         if (currentShape.name === 'torus') {
-            const depthMin = 0.0, depthMax = 1.0;
-            const freqMin = 0.1, freqMax = 20.0;
-            const baseFreqMin = 100, baseFreqMax = 2000;
-            const octavesMin = 0, octavesMax = 6;
+            const depthMin = 0.0,
+                depthMax = 1.0;
+            const freqMin = 0.1,
+                freqMax = 20.0;
+            const baseFreqMin = 100,
+                baseFreqMax = 2000;
+            const octavesMin = 0,
+                octavesMax = 6;
 
             let mappedDepth = map(currentShape.rotY % 360, -180, 180, depthMin, depthMax);
             autoFilter.depth.value = constrain(mappedDepth, depthMin, depthMax);
@@ -325,9 +482,12 @@ function handleInteractionDrag(currentX, currentY) {
         }
 
         if (currentShape.name === 'plane') {
-            const freqMin = 0.1, freqMax = 10.0;
-            const feedbackMin = 0.0, feedbackMax = 0.9;
-            const delayMin = 0.001, delayMax = 0.05;
+            const freqMin = 0.1,
+                freqMax = 10.0;
+            const feedbackMin = 0.0,
+                feedbackMax = 0.9;
+            const delayMin = 0.001,
+                delayMax = 0.05;
 
             let mappedFrequency = map(currentShape.rotY % 360, -180, 180, freqMin, freqMax);
             chorus.frequency.value = constrain(mappedFrequency, freqMin, freqMax);
@@ -342,16 +502,17 @@ function handleInteractionDrag(currentX, currentY) {
         }
 
         if (currentShape.name === 'sphere') {
-            const fadeMin = 0., fadeMax = 1.;
+            const fadeMin = 0.,
+                fadeMax = 1.;
 
             let mappedFade = map(currentShape.rotY % 360, -180, 180, fadeMin, fadeMax);
             crossFade.fade.value = constrain(mappedFade, fadeMin, fadeMax);
 
             // console.log(`CrossFade (Dry/Wet) - Fade: ${crossFade.fade.value.toFixed(2)}`);
         }
-        return true;
+        return false;
     }
-    return false;
+    return true;
 }
 
 function handleInteractionEnd() {
@@ -360,54 +521,40 @@ function handleInteractionEnd() {
     }
     draggedShape = null;
     console.log("Interaction ended. Dragged shape reset.");
-    return true;
+    return false;
 }
 
 function mousePressed() {
     // Only return false (prevent default) if handleInteractionStart actually found a shape.
-    if (handleInteractionStart(mouseX, mouseY)) {
-        return false;
-    }
-    // If no shape was hit, allow the default behavior (e.g., HTML clicks).
-    return true;
+    return handleInteractionStart(mouseX, mouseY);
 }
 
 function mouseDragged() {
-    if (handleInteractionDrag(mouseX, mouseY)) {
-        return false;
-    }
-    return true;
+    return handleInteractionDrag(mouseX, mouseY);
 }
 
 function mouseReleased() {
-    if (handleInteractionEnd()) {
-        return false;
-    }
-    return true;
+    return handleInteractionEnd();
 }
 
 function touchStarted() {
     if (touches.length > 0) {
         // Same logic: if a shape is hit, prevent default. Otherwise, allow.
-        if (handleInteractionStart(touches[0].x, touches[0].y)) {
-            return false;
-        }
+        return handleInteractionStart(touches[0].x, touches[0].y);
     }
     return true; // Allow default if no shape was touched or if touches.length is 0
 }
 
 function touchMoved() {
     if (touches.length > 0) {
-        if (handleInteractionDrag(touches[0].x, touches[0].y)) {
-            return false;
-        }
+        return handleInteractionDrag(touches[0].x, touches[0].y);
     }
     return true;
 }
 
 function touchEnded() {
-    if (handleInteractionEnd()) {
-        return false;
+    if (touches.length == 0) {
+        return handleInteractionEnd();
     }
     return true;
 }
@@ -416,10 +563,33 @@ function touchEnded() {
 // --- Responsive Canvas Handling ---
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
-    shapes = [
-        { name: 'plane', x: -width / 4, y: -height / 8, size: 100, rotX: shapes[0].rotX, rotY: shapes[0].rotY, rotZ: shapes[0].rotZ },
-        { name: 'box', x: width / 4, y: -height / 8, size: 80, rotX: shapes[1].rotX, rotY: shapes[1].rotY, rotZ: shapes[1].rotZ },
-        { name: 'torus', x: -width / 4, y: height / 8, size: 100, rotX: shapes[2].rotX, rotY: shapes[2].rotY, rotZ: shapes[2].rotZ },
-        { name: 'sphere', x: width / 4, y: height / 8, size: 120, rotX: shapes[3].rotX, rotY: shapes[3].rotY, rotZ: shapes[3].rotZ },
-    ];
+    // When the window is resized, maintain the current shapes but adjust their positions
+    // based on the new canvas dimensions.
+    const newShapes = shapes.map(s => {
+        let newX = s.x; // Simplified example, adjust as needed for responsive layout
+        let newY = s.y;
+        return {
+            ...s,
+            x: newX,
+            y: newY
+        };
+    });
+    shapes = newShapes;
+}
+
+// Fisher-Yates shuffle algorithm for array randomization
+function shuffle(array) {
+    let currentIndex = array.length,
+        randomIndex;
+    // While there remain elements to shuffle.
+    while (currentIndex != 0) {
+        // Pick a remaining element.
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        // And swap it with the current element.
+        [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex], array[currentIndex]
+        ];
+    }
+    return array;
 }

@@ -1,5 +1,5 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
     <head>
         <meta charset="utf-8" />
         <title>Fossa</title>
@@ -79,6 +79,30 @@
                 height: auto;
             }
 
+            /* --- Floating Button Styles --- */
+            #randomizeButton {
+                position: fixed; /* Makes the button float relative to the viewport */
+                bottom: 20px; /* 20px from the bottom */
+                right: 20px; /* 20px from the right */
+                z-index: 100; /* Ensures it stays on top of other content */
+                padding: 15px 25px;
+                font-size: 1.2em;
+                background-color: #dc3545; /* Red color */
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                transition: background-color 0.3s ease, transform 0.3s ease;
+                /* The display: none; is still here from your original code,
+                   which will be managed by your Fossa.js script. */
+            }
+
+            #randomizeButton:hover {
+                background-color: #c82333;
+                transform: scale(1.05); /* Slightly enlarge on hover */
+            }
+
             /* --- Project Container Styling --- */
             .project-container {
                 width: 90%;
@@ -146,7 +170,7 @@
             #loadingWatermark.loaded .spinner {
                 display: none;
             }
-
+            
             #startButton {
                 margin-top: 20px;
                 padding: 15px 30px;
@@ -193,7 +217,7 @@
                 cursor: pointer;
                 border-radius: 5px;
                 transition: background-color 0.3s ease;
-                touch-action: manipulation; /* Explicitly apply to the button */
+                touch-action: manipulation;
             }
 
             .dropbtn:hover, .dropbtn:focus {
@@ -220,14 +244,13 @@
                 display: block;
                 text-align: left;
                 transition: background-color 0.2s;
-                touch-action: manipulation; /* Explicitly apply to the links */
+                touch-action: manipulation;
             }
 
             .dropdown-content a:hover {
                 background-color: #ddd;
             }
 
-            /* Use .show class for JavaScript toggle */
             .dropdown-content.show {
                 display: block;
             }
@@ -299,102 +322,58 @@
             <div class="p5-container" id="canvas-container"></div>
         </div>
 
+        <!-- Floating randomize button -->
+        <button id="randomizeButton" style="display: none;">break it</button>
+
         <script src="./script/Fossa.js"></script>
 
-      <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const dropbtn = document.getElementById('albumDropdownBtn');
-        const dropdownContent = document.getElementById('albumDropdownContent');
-        const dropdownContainer = dropbtn.parentNode; // The .dropdown div
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const dropbtn = document.getElementById('albumDropdownBtn');
+                const dropdownContent = document.getElementById('albumDropdownContent');
+                // Removed dropdownContainer as it's not directly used in this script block
 
-        if (dropbtn && dropdownContent && dropdownContainer) {
+                if (dropbtn && dropdownContent) {
+                    const dropdownLinks = dropdownContent.querySelectorAll('a');
+                    const toggleDropdown = function(event) {
+                        event.stopPropagation();
+                        dropdownContent.classList.toggle('show');
+                    };
 
-            // Cache all dropdown links
-            const dropdownLinks = dropdownContent.querySelectorAll('a');
+                    dropbtn.addEventListener('click', toggleDropdown);
+                    dropbtn.addEventListener('touchend', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        toggleDropdown(event);
+                    }, { passive: false });
 
-            // Function to toggle dropdown visibility (used by click/tap)
-            const toggleDropdown = function(event) {
-                // Prevent event from bubbling up to window and immediately closing
-                event.stopPropagation();
-                dropdownContent.classList.toggle('show');
-            };
+                    dropdownLinks.forEach(link => {
+                        link.addEventListener('touchend', function(event) {
+                            event.stopPropagation();
+                            setTimeout(() => {
+                                 window.location.href = this.href;
+                            }, 50);
+                            dropdownContent.classList.remove('show');
+                        }, { passive: false });
 
-            // Event listener for the dropdown button
-            // This handles both desktop clicks and mobile taps
-            dropbtn.addEventListener('click', toggleDropdown);
-            dropbtn.addEventListener('touchend', function(event) {
-                // Prevent default tap behavior to avoid synthetic click and double-toggle
-                // This is crucial for the button itself to prevent unwanted behavior.
-                event.preventDefault();
-                event.stopPropagation();
-                toggleDropdown(event); // Call the toggle function
-            }, { passive: false }); // passive: false is crucial for preventDefault() to work
+                        link.addEventListener('click', function(event) {
+                            console.log("Link click detected for: " + this.href);
+                            event.stopPropagation();
+                        });
+                    });
 
-            // --- IMPORTANT: Handle Taps on Links Directly ---
-            dropdownLinks.forEach(link => {
-                // For direct link taps:
-                link.addEventListener('touchend', function(event) {
-                    // Prevent default to stop synthetic click, IF AND ONLY IF we plan to navigate manually
-                    // For direct navigation, we typically don't preventDefault here
-                    // if the link itself is meant to be followed.
-                    // The goal is to ensure the browser's default link-following behavior is not suppressed.
-
-                    // If you're encountering phantom clicks or other weirdness:
-                    // event.preventDefault(); // Uncomment if you suspect a phantom click is interfering
-                    event.stopPropagation(); // Stop event from bubbling up to window or parent dropdown.
-
-                    // If you call preventDefault() above, you MUST manually navigate:
-                    // window.location.href = this.href;
-                    // console.log("Manual navigation to: " + this.href);
-
-                    // Otherwise, rely on the browser's default click behavior (which will fire after touchend)
-                    // If the problem is that the *click* event isn't firing, then force navigation.
-                    // If `return false;` in p5.js or other `preventDefault` is global, this manual navigation is a fallback.
-                    console.log("Link touchend detected for: " + this.href);
-                    
-                    // Allow a tiny delay to ensure all other DOM processing for touch is done
-                    // before forcing navigation. This can sometimes help.
-                    setTimeout(() => {
-                         window.location.href = this.href;
-                    }, 50); // Small delay
-
-                    // Immediately close the dropdown after tapping a link
-                    dropdownContent.classList.remove('show');
-
-                }, { passive: false }); // Needs to be false if you ever use preventDefault()
-
-                // Optional: For very old Android browsers that might not respond to touchend
-                // and if the click is consistently being swallowed, a very direct approach:
-                link.addEventListener('click', function(event) {
-                    // This listener is typically redundant if touchend works,
-                    // but it's a fallback. If touchend + preventDefault is used,
-                    // a synthetic click might not fire.
-                    console.log("Link click detected for: " + this.href);
-                    event.stopPropagation(); // Stop it from closing dropdown if it propagated to window
-                    // The browser's default action (following the link) should happen.
-                });
-            });
-            // --- END IMPORTANT ---
-
-
-            // Close dropdown if clicked/tapped outside
-            window.addEventListener('click', function(event) {
-                // If the target is not part of the dropdown and the dropdown is open, close it.
-                if (!event.target.closest('.dropdown') && dropdownContent.classList.contains('show')) {
-                    dropdownContent.classList.remove('show');
+                    window.addEventListener('click', function(event) {
+                        if (!event.target.closest('.dropdown') && dropdownContent.classList.contains('show')) {
+                            dropdownContent.classList.remove('show');
+                        }
+                    });
+                    window.addEventListener('touchend', function(event) {
+                        if (!event.target.closest('.dropdown') && dropdownContent.classList.contains('show')) {
+                            dropdownContent.classList.remove('show');
+                        }
+                    }, { passive: false });
                 }
             });
-            window.addEventListener('touchend', function(event) {
-                // Similar logic for touchend to close dropdown on outside tap
-                // Be extremely careful with preventDefault() here if you're not navigating something specific.
-                // It can prevent other elements' default touch behaviors (like scrolling).
-                if (!event.target.closest('.dropdown') && dropdownContent.classList.contains('show')) {
-                    dropdownContent.classList.remove('show');
-                }
-            }, { passive: false }); // Still set passive: false if `closest` method might require `preventDefault`
-        }
-        
-    });
-</script>
+        </script>
     </body>
 </html>

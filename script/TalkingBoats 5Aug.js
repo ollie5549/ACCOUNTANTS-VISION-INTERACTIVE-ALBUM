@@ -9,7 +9,6 @@
 // =================================================================
 let audioContextStarted = false;
 let isErasing = false;
-let hasBroken = false; // Flag to track if the 'break it' button has been clicked before
 
 // Tone.js variables
 const audioPlayers = [];
@@ -26,6 +25,7 @@ let previousBoidCount = 0;
 const boatImages = [];
 const boatFiles = ['boat1.png', 'boat2.png', 'boat3.png', 'boat4.png', 'boat5.png', 'boat6.png', 'boat7.png', 'boat8.png'];
 
+
 // =================================================================
 // P5.js Preload Function
 // =================================================================
@@ -40,14 +40,12 @@ function preload() {
     }
 }
 
+
 // =================================================================
 // Tone.js Audio Setup
 // =================================================================
 const limiter = new Tone.Limiter(-2).toDestination();
-const reverb = new Tone.Reverb({
-    decay: 2.8,
-    wet: 0.4
-}).connect(limiter);
+const reverb = new Tone.Reverb({ decay: 3, wet: 0.2 }).connect(limiter);
 const comp = new Tone.Compressor({
     threshold: -24,
     ratio: 3,
@@ -56,16 +54,8 @@ const comp = new Tone.Compressor({
 }).connect(reverb);
 
 function makeAudioNode(name, url) {
-    const panner = new Tone.Panner3D({
-        positionX: 0,
-        positionY: 0,
-        positionZ: 0
-    });
-    // Remove .sync().start(0) so we can control start time and playback rate later
-    const player = new Tone.Player({
-        url: `./audio/TalkingBoats/${url}.mp3`,
-        loop: true
-    });
+    const panner = new Tone.Panner3D({ positionX: 0, positionY: 0, positionZ: 0 });
+    const player = new Tone.Player({ url: `./audio/TalkingBoats/${url}.mp3`, loop: true }).sync().start(0);
     player.connect(panner);
     panner.connect(comp);
     audioPlayers.push(player);
@@ -82,54 +72,8 @@ makeAudioNode("Piano", "piano");
 makeAudioNode("Synth", "synth");
 makeAudioNode("Xylophone", "xylophone");
 
-const toneMeter = new Tone.Meter({
-    channelCount: 9
-});
+const toneMeter = new Tone.Meter({ channelCount: 9 });
 Tone.Destination.chain(toneMeter);
-
-// =================================================================
-// Randomization Logic
-// =================================================================
-
-/**
- * Generates a random number within a specified range.
- * @param {number} min - The minimum value.
- * @param {number} max - The maximum value.
- * @returns {number} A random number.
- */
-function getRandomNumber(min, max) {
-    return Math.random() * (max - min) + min;
-}
-
-/**
- * Randomizes the starting time and playback speed of each audio stem.
- * @param {number} maxOffset - The maximum delay in seconds for a stem.
- * @param {number} minRate - The minimum playback rate (e.g., 0.8 for 80% speed).
- * @param {number} maxRate - The maximum playback rate (e.g., 1.2 for 120% speed).
- */
-function randomizeAndStart(maxOffset = 0, minRate = 0.02, maxRate = 0.8) {
-    if (Tone.Transport.state === 'started') {
-        Tone.Transport.stop();
-        audioPlayers.forEach(player => player.stop());
-    }
-
-    // Set a random tempo for the entire transport
-    const randomTempo = getRandomNumber(lastAppliedTempo * 0.8, lastAppliedTempo * 1.2);
-    Tone.Transport.bpm.value = randomTempo;
-
-    // Apply a random start time and playback rate to each player
-    audioPlayers.forEach(player => {
-        const randomDelay = getRandomNumber(0, maxOffset);
-        const randomRate = getRandomNumber(minRate, maxRate);
-
-        player.playbackRate = randomRate;
-        player.start(`+${randomDelay}`);
-        console.log(`Player starting at: +${randomDelay.toFixed(2)}s with speed: ${randomRate.toFixed(2)}x`);
-    });
-
-    Tone.Transport.start();
-    console.log(`Randomized playback started with Tempo: ${randomTempo.toFixed(2)} BPM.`);
-}
 
 
 // =================================================================
@@ -140,7 +84,7 @@ function setup() {
 
     flock = new Flock();
     boatFlock = new Flock();
-
+    
     imageMode(CENTER);
 
     let availableImages = shuffle([...boatImages]);
@@ -148,7 +92,7 @@ function setup() {
     for (let i = 0; i < 9; i++) {
         if (audioNodes[i]) {
             const boatImage = availableImages[i % availableImages.length];
-            let boat = new Boat(random(width), random(height), audioNodes[i], audioPlayers[i], boatImage);
+            let boat = new Boat(random(width), random(height), audioNodes[i], boatImage);
             boatFlock.addBoid(boat);
         }
     }
@@ -171,9 +115,7 @@ function setup() {
         const loadingText = document.getElementById('loadingText');
         const spinner = document.querySelector('#loadingWatermark .spinner');
         const startButton = document.getElementById('startButton');
-        const randomizeButton = document.getElementById('randomizeButton');
-
-
+        
         if (loadingText) {
             loadingText.textContent = "Ready to start!";
         }
@@ -183,10 +125,6 @@ function setup() {
         if (startButton) {
             startButton.style.display = 'block';
             startButton.disabled = false;
-        }
-        if (randomizeButton) {
-            randomizeButton.style.display = 'block';
-            randomizeButton.disabled = false;
         }
     }).catch(error => {
         console.error("Error loading audio files:", error);
@@ -231,41 +169,20 @@ function draw() {
 // =================================================================
 // User Input (Mouse, Touch & UI)
 // =================================================================
-
-/**
- * Inverts all colors on the page by adding a CSS filter to the body.
- */
-function invertColors() {
-    const body = document.body;
-    if (body) {
-        body.style.filter = 'invert(1)';
-        body.style.transition = 'filter 0.5s ease-in-out';
-        console.log("Colors inverted!");
-    }
-}
-
 async function handleStartButtonClick() {
     if (audioContextStarted) return;
-
+    
     const startButton = document.getElementById('startButton');
-    const randomizeButton = document.getElementById('randomizeButton');
-    if (randomizeButton) {
-        randomizeButton.style.display = 'block'; // This line makes the button visible
-    }
-
-
     if (startButton) {
         startButton.disabled = true;
         startButton.textContent = "Starting...";
     }
-
-
+    
     try {
         console.log("Attempting to start Tone.js audio...");
         await Tone.start();
         Tone.Transport.bpm.value = lastAppliedTempo;
         Tone.Transport.start();
-        audioPlayers.forEach(player => player.start());
         audioContextStarted = true;
         hideLoadingScreen();
         console.log("Tone.js audio started successfully! 🔊");
@@ -275,28 +192,7 @@ async function handleStartButtonClick() {
             startButton.disabled = false;
             startButton.textContent = "Error. Try again?";
         }
-        if (randomizeButton) {
-            randomizeButton.disabled = false;
-        }
         alert("Failed to start audio. Please try again.");
-    }
-}
-
-function handleRandomizeButtonClick() {
-    // Invert colors on the first click
-    if (!hasBroken) {
-        invertColors();
-        hasBroken = true;
-    }
-
-    if (!audioContextStarted) {
-        Tone.start().then(() => {
-            audioContextStarted = true;
-            hideLoadingScreen();
-            randomizeAndStart();
-        });
-    } else {
-        randomizeAndStart();
     }
 }
 
@@ -304,9 +200,7 @@ function hideLoadingScreen() {
     const loadingWatermark = document.getElementById('loadingWatermark');
     if (loadingWatermark) {
         loadingWatermark.style.opacity = '0';
-        setTimeout(() => {
-            loadingWatermark.style.display = 'none';
-        }, 500);
+        setTimeout(() => { loadingWatermark.style.display = 'none'; }, 500);
     }
 }
 
@@ -314,7 +208,8 @@ function mouseDragged() {
     if (mouseButton === LEFT) {
         flock.addBoid(new Boid(mouseX, mouseY));
         audioUpdateNeeded = true;
-    } else if (mouseButton === RIGHT) {
+    }
+    else if (mouseButton === RIGHT) {
         let eraseRadius = 30;
         flock.boids = flock.boids.filter(boid => {
             let d = dist(mouseX, mouseY, boid.position.x, boid.position.y);
@@ -350,33 +245,15 @@ function touchEnded() {
 }
 
 document.addEventListener('contextmenu', event => event.preventDefault());
-document.addEventListener('DOMContentLoaded', () => {
-    const startButton = document.getElementById('startButton');
-    if (startButton) {
-        startButton.addEventListener('click', handleStartButtonClick);
-        startButton.addEventListener('touchend', handleStartButtonClick);
-    }
-    const randomizeButton = document.getElementById('randomizeButton');
-    if (randomizeButton) {
-        randomizeButton.addEventListener('click', handleRandomizeButtonClick);
-        randomizeButton.addEventListener('touchend', handleRandomizeButtonClick);
-    }
-});
 
 
 // =================================================================
 // Flock and Boid Classes
 // =================================================================
 class Flock {
-    constructor() {
-        this.boids = [];
-    }
-    run(allBoids = this.boids) {
-        for (let boid of this.boids) boid.run(allBoids);
-    }
-    addBoid(b) {
-        this.boids.push(b);
-    }
+    constructor() { this.boids = []; }
+    run(allBoids = this.boids) { for (let boid of this.boids) boid.run(allBoids); }
+    addBoid(b) { this.boids.push(b); }
 }
 
 class Boid {
@@ -390,22 +267,15 @@ class Boid {
         colorMode(HSB);
         this.color = color(random(256), 255, 255);
     }
-    run(allBoids) {
-        this.flock(allBoids);
-        this.update();
-        this.borders();
-        this.render();
-    }
-    applyForce(force) {
-        this.acceleration.add(force);
-    }
+    run(allBoids) { this.flock(allBoids); this.update(); this.borders(); this.render(); }
+    applyForce(force) { this.acceleration.add(force); }
     flock(allBoids) {
         let separation = this.separate(allBoids);
         let alignment = this.align(allBoids);
         let cohesion = this.cohesion(allBoids);
         separation.mult(1.5);
         alignment.mult(1.0);
-cohesion.mult(1.0);
+        cohesion.mult(1.0);
         this.applyForce(separation);
         this.applyForce(alignment);
         this.applyForce(cohesion);
@@ -489,10 +359,7 @@ cohesion.mult(1.0);
                 sum.add(other.position);
                 count++;
             }
-            if (other instanceof Boat) {
-                sum.add(other.position);
-                count++;
-            }
+             if (other instanceof Boat) { sum.add(other.position); count++; }
         }
         if (count > 0) {
             sum.div(count);
@@ -503,10 +370,9 @@ cohesion.mult(1.0);
 }
 
 class Boat extends Boid {
-    constructor(x, y, pannerNode, playerNode, boatImage) {
+    constructor(x, y, pannerNode, boatImage) {
         super(x, y);
         this.panner = pannerNode;
-        this.player = playerNode; // Store a reference to the player
         this.image = boatImage;
         this.size = random(80, 120);
         this.isFlipped = random() > 0.5;
@@ -530,7 +396,7 @@ class Boat extends Boid {
         if (this.image) {
             push();
             translate(this.position.x, this.position.y);
-
+            
             // This is the line that was commented out to disable rotation
             // let theta = this.velocity.heading() + radians(90);
             // rotate(theta);
@@ -538,9 +404,9 @@ class Boat extends Boid {
             if (this.isFlipped) {
                 scale(-1, 1);
             }
-
+            
             image(this.image, 0, 0, this.size, this.size);
-
+            
             pop();
         }
     }

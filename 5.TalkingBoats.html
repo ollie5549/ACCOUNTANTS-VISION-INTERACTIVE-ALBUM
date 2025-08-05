@@ -1,5 +1,5 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
     <head>
         <meta charset="utf-8" />
         <title>Talking Boats</title>
@@ -77,6 +77,30 @@
                 touch-action: manipulation;
                 max-width: 100%;
                 height: auto;
+            }
+
+            /* --- Floating Button Styles --- */
+            #randomizeButton {
+                position: fixed; /* Makes the button float relative to the viewport */
+                bottom: 20px;    /* 20px from the bottom */
+                right: 20px;     /* 20px from the right */
+                z-index: 100;    /* Ensures it stays on top of other content */
+                padding: 15px 25px;
+                font-size: 1.2em;
+                background-color: #dc3545; /* Red color */
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                transition: background-color 0.3s ease, transform 0.3s ease;
+                /* The display: none; is still here from your HTML,
+                   which will be managed by your TalkingBoats.js script. */
+            }
+
+            #randomizeButton:hover {
+                background-color: #c82333;
+                transform: scale(1.05); /* Slightly enlarge on hover */
             }
 
             /* --- Project Container Styling --- */
@@ -278,7 +302,7 @@
             <button id="startButton" style="display: none;">Start Audio</button>
         </div>
         
-        <script src="TalkingBoats.js"></script>
+        <script src="./script/TalkingBoats.js"></script>
 
         <div class="navbar">
             <div class="dropdown">
@@ -300,52 +324,58 @@
             <div class="p5-container" id="canvas-container"></div>
         </div>
 
-        <script src="./script/TalkingBoats.js"></script>
+        <!-- Floating randomize button is placed here -->
+        <button id="randomizeButton" style="display: none;">break it</button>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
+        <script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // --- Start Button Logic ---
+    const startButton = document.getElementById('startButton');
+    if (startButton) {
+        startButton.addEventListener('click', handleStartButtonClick);
+        startButton.addEventListener('touchend', (event) => {
+            event.preventDefault(); 
+            handleStartButtonClick();
+        });
+    }
+
+    // --- Dropdown Menu Logic (Corrected) ---
+    const dropbtn = document.getElementById('albumDropdownBtn');
+    const dropdownContent = document.getElementById('albumDropdownContent');
+    if (dropbtn && dropdownContent) {
         
-        // --- Start Button Logic ---
-        const startButton = document.getElementById('startButton');
-        if (startButton) {
-            startButton.addEventListener('click', handleStartButtonClick);
-            startButton.addEventListener('touchend', (event) => {
-                event.preventDefault();
-                handleStartButtonClick();
-            });
-        }
+        // This function will toggle the menu's visibility.
+        const handleDropdownToggle = function(event) {
+            // We use event.stopPropagation() to prevent the click from bubbling up to the window listener
+            // which would immediately close the menu.
+            event.stopPropagation();
+            dropdownContent.classList.toggle('show');
+        };
 
-        // --- Dropdown Menu Logic ---
-        const dropbtn = document.getElementById('albumDropdownBtn');
-        const dropdownContent = document.getElementById('albumDropdownContent');
-        if (dropbtn && dropdownContent) {
-            const handleDropdownToggle = function(event) {
-                // Stop the event from bubbling up to the window
-                event.stopPropagation();
-                dropdownContent.classList.toggle('show');
-            };
+        // For desktop, a simple click listener is all you need.
+        dropbtn.addEventListener('click', handleDropdownToggle);
 
-            // Listen for both click (computer mouse) and touchend (phone tap)
-            dropbtn.addEventListener('click', handleDropdownToggle);
-            dropbtn.addEventListener('touchend', (event) => {
-                // Prevent the browser from sending a synthetic click event
-                event.preventDefault();
-                handleDropdownToggle(event);
-            });
-            
-            // This listener closes the menu when you click/tap anywhere else on the page
-            window.addEventListener('click', function(event) {
-                if (!event.target.closest('.dropdown')) {
-                    dropdownContent.classList.remove('show');
-                }
-            });
-            window.addEventListener('touchend', function(event) {
-                if (!event.target.closest('.dropdown')) {
-                    dropdownContent.classList.remove('show');
-                }
-            });
-        }
-    });
-</script>
+        // For mobile, use touchstart to open the menu immediately.
+        // Importantly, we're not using event.preventDefault() here,
+        // so the browser can continue the event sequence for the links.
+        dropbtn.addEventListener('touchstart', handleDropdownToggle);
+        
+        // This is a crucial addition for mobile. It prevents a tap on a link
+        // from bubbling up to the window listener and closing the menu
+        // before the link can be followed.
+        dropdownContent.addEventListener('touchend', function(event) {
+             event.stopPropagation();
+        });
+        
+        // This listener closes the menu when you click/tap anywhere else on the page.
+        window.addEventListener('click', function(event) {
+            if (!event.target.closest('.dropdown')) {
+                dropdownContent.classList.remove('show');
+            }
+        });
+    }
+});
+        </script>
     </body>
 </html>
