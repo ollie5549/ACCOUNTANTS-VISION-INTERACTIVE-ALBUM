@@ -81,7 +81,6 @@ createPlayerPlusPanner("./audio/Fossa/FOSSAxylo.mp3", 0.8, 0, 6.28);
 // =================================================================
 let audioLoadedAndReady = false;
 let audioContextStarted = false;
-let audioStarted = false;
 
 function showButtons() {
     const loadingWatermark = document.getElementById('loadingWatermark');
@@ -92,6 +91,7 @@ function showButtons() {
     if (loadingWatermark && loadingText && startButton && randomizeButton) {
         loadingText.textContent = "Ready to Play!";
         loadingWatermark.classList.add('loaded');
+        // Show both the Start and Randomize buttons now
         startButton.style.display = 'block';
         randomizeButton.style.display = 'block';
         console.log("Start and Randomize buttons shown, spinner hidden.");
@@ -114,6 +114,10 @@ function hideLoadingScreen() {
     }
 }
 
+/**
+ * This function is now dedicated to starting the audio context and playback.
+ * It is called by the 'Start' button.
+ */
 function startAudioContextAndPlayback() {
     if (audioLoadedAndReady && !audioContextStarted) {
         console.log("Attempting to start audio context.");
@@ -131,6 +135,7 @@ function startAudioContextAndPlayback() {
         hideLoadingScreen();
     }
 }
+
 
 /**
  * Inverts all colors on the page by adding a CSS filter to the body.
@@ -160,14 +165,12 @@ function randomizeAll() {
     rotationSpeed = getRandomNumber(0.1, 400);
 
     // 3. Randomize Audio Playback
-    if (!audioContextStarted) {
-        Tone.start().then(() => {
-            audioContextStarted = true;
-            randomizeAndStart(0, 0.1, 10.2);
-            hideLoadingScreen();
-        });
-    } else {
+    // This function will only run if the audio context is already started.
+    // The "Start" button is now the initial trigger.
+    if (audioContextStarted) {
         randomizeAndStart(0, 0.2, 20.2);
+    } else {
+        console.log("Audio context not yet started. Press Start first.");
     }
 
     console.log(`Canvas resized to: ${canvasWidth}x${canvasHeight}`);
@@ -189,7 +192,7 @@ function randomizeAndStart(maxOffset, minRate, maxRate) {
 
     players.forEach(player => {
         const randomDelay = getRandomNumber(0, maxOffset);
-        const randomRate = getRandomNumber(minRate, maxRate);
+        const randomRate = getRandomNumber(0.3, 4);
 
         player.playbackRate = randomRate;
         player.start(`+${randomDelay}`);
@@ -273,7 +276,9 @@ function setup() {
             event.preventDefault(); // Prevent default touch actions like scrolling/zooming
             handleCanvasPress();
             console.log("Direct touchstart on canvas detected!");
-        }, { passive: false }); // Use passive: false to allow preventDefault
+        }, {
+            passive: false
+        }); // Use passive: false to allow preventDefault
     }
 }
 
@@ -363,15 +368,8 @@ function handleCanvasPress() {
         panner.positionZ.value = orbitRadius * Math.cos(currentAngle);
     });
 
-    if (!audioContextStarted) {
-        Tone.start().then(() => {
-            console.log("Audio context started by canvas press!");
-            audioContextStarted = true;
-            Tone.Transport.start();
-        }).catch(e => {
-            console.error("Error starting Tone.js context:", e);
-        });
-    }
+    // The logic to start the audio is now only in the startAudioContextAndPlayback function
+    // so we can remove this check here.
 }
 
 /**

@@ -1,23 +1,18 @@
 // =================================================================
 // Global Flags and State
 // =================================================================
-let paths = [];
-let framesBetweenParticles = 5;
-let nextParticleFrame = 0;
-let previousParticlePosition;
-let particleFadeFrames = 700;
-
 const GRID_COLS = 16;
 const GRID_ROWS = 4;
 let cellWidth;
 let cellHeight;
 let cellDepth;
 
-let sequencerGridVisual = [];
-let sequencerGridAudio = [];
+let boxes = [];
 let audioOffTimers = [];
 
-let keys; // Tone.Players instance
+let allPlayers; // A single Tone.Players object to load all audio files
+let pannerVelocities = []; // New array for panner drift velocities
+
 let currentStep = 0;
 let lastDraggedCell = {
     row: -1,
@@ -25,7 +20,7 @@ let lastDraggedCell = {
 };
 let audioStarted = false;
 let audioLoadedAndReady = false;
-let hasBroken = false; // Flag to track if the 'break it' button has been clicked before
+let hasBroken = false;
 
 // =================================================================
 // Tone.js Audio Setup
@@ -44,54 +39,40 @@ const comp = new Tone.Compressor({
     release: 0.15
 }).connect(reverb);
 
-const player = new Tone.Player("./audio/Nowhere/NOWHERE.mp3")
-    .connect(comp);
-player.sync().start(0);
-player.autostart = true;
+const allUrls = {};
+// Ambient stems
+for (let i = 1; i <= 14; i++) {
+    allUrls[`ambient${i}`] = `./audio/Nowhere/${i}.mp3`;
+}
+// Glitch sounds
+for (let i = 1; i <= 64; i++) {
+    allUrls[`glitch${i}`] = `./audio/Nowhere/glitch-${i}.mp3`;
+}
+// Hi-hats
+for (let i = 1; i <= 4; i++) {
+    allUrls[`hihat${i}`] = `./audio/Nowhere/hihat-${i}.mp3`;
+}
+// Snares
+for (let i = 1; i <= 5; i++) {
+    allUrls[`SNARE${i}`] = `./audio/Nowhere/SNARE_${i}.wav`;
+}
+// Kicks
+for (let i = 1; i <= 7; i++) {
+    allUrls[`KICK${i}`] = `./audio/Nowhere/KICK_${i}.wav`;
+}
 
-keys = new Tone.Players({
-    urls: {
-        0: "agogoHigh.mp3",
-        1: "agogoLow.mp3",
-        2: "snare.mp3",
-        3: "kick.mp3",
-    },
-    fadeOut: "64n",
-    baseUrl: `./audio/Nowhere/`,
-}).connect(comp);
-
-// --- Randomization Function for Stems ---
-/**
- * Randomizes the starting time and playback rate of each player and restarts the transport.
- * @param {number} maxOffset - The maximum possible delay in seconds for a stem.
- * @param {number} minRate - The minimum playback rate.
- * @param {number} maxRate - The maximum playback rate.
- */
-function randomizeAndStart(maxOffset = 0, minRate = 0.09, maxRate = 0.5) {
-    if (Tone.Transport.state === 'started') {
-        console.log("Audio already playing. Stopping before randomizing.");
-        Tone.Transport.stop();
-        player.stop();
-        // Correct way to iterate over Tone.Players
-        for (let i in keys.players) {
-            keys.player(i).stop();
-        }
-    }
-
-    const randomTempo = getRandomNumber(60, 150);
-    Tone.Transport.bpm.value = randomTempo;
-
-    player.playbackRate = getRandomNumber(minRate, maxRate);
-    player.start(`+${getRandomNumber(0, maxOffset)}`);
-
-    // Correct way to iterate over Tone.Players
-    for (let i in keys.players) {
-        const randomRate = getRandomNumber(minRate, maxRate);
-        keys.player(i).playbackRate = randomRate;
-    }
-
-    Tone.Transport.start();
-    console.log(`Randomized playback started! Tempo: ${randomTempo.toFixed(2)} BPM`);
+// Separate panners for ambient tracks
+let ambientPanners = [];
+for (let i = 0; i < 14; i++) {
+    const panner = new Tone.Panner3D({
+        panningModel: "HRTF",
+        // Adjusted for more extreme starting positions
+        positionX: getRandomNumber(-5, 5),
+        positionY: getRandomNumber(-3, 3),
+        positionZ: getRandomNumber(-2, 2),
+        refDistance: 0.5
+    }).connect(comp);
+    ambientPanners.push(panner);
 }
 
 
@@ -116,43 +97,87 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Randomize button not found!");
     }
 
-    Tone.loaded().then(() => {
-        console.log("All audio files loaded!");
-        audioLoadedAndReady = true;
-        const loadingWatermark = document.getElementById('loadingWatermark');
-        const randomizeButton = document.getElementById('randomizeButton');
-        const startButton = document.getElementById('startButton');
-        const loadingText = document.getElementById('loadingText');
+    allPlayers = new Tone.Players({
+        urls: allUrls,
+        onload: () => {
+            console.log("All audio files loaded!");
+            audioLoadedAndReady = true;
 
-        if (loadingWatermark) {
-            loadingWatermark.style.display = 'none';
+            const loadingWatermark = document.getElementById('loadingWatermark');
+            const randomizeButton = document.getElementById('randomizeButton');
+            const startButton = document.getElementById('startButton');
+            const loadingText = document.getElementById('loadingText');
+
+            if (loadingWatermark) {
+                loadingWatermark.style.display = 'none';
+            }
+            if (startButton) {
+                startButton.style.display = 'block';
+            }
+            if (randomizeButton) {
+                randomizeButton.style.display = 'block';
+            }
+            if (loadingText) {
+                loadingText.textContent = "Ready to Play!";
+            }
         }
-        if (startButton) {
-            startButton.style.display = 'block';
-        }
-        if (randomizeButton) {
-            randomizeButton.style.display = 'block';
-        }
-        if (loadingText) {
-            loadingText.textContent = "Ready to Play!";
-        }
-    }).catch(error => {
-        console.error("Error loading audio files:", error);
-        const loadingWatermark = document.getElementById('loadingWatermark');
-        if (loadingWatermark) {
-            loadingWatermark.innerHTML = '<p style="color: red;">Error Loading Audio. Please refresh.</p>';
+    }).toDestination();
+});
+
+// Sequencer for grid sounds
+Tone.Transport.scheduleRepeat((time) => {
+    currentStep = (currentStep + 1) % GRID_COLS;
+    const activeBoxesInStep = boxes.filter(b => b.gridCol === currentStep && b.audioActive);
+
+    activeBoxesInStep.forEach((b, index) => {
+        const offset = index * 0.001;
+        const startTime = Tone.Time(time).toSeconds() + offset;
+
+        if (b.gridRow === 0) {
+            const randomIndex = floor(random(1, 65));
+            allPlayers.player(`glitch${randomIndex}`).start(startTime);
+        } else if (b.gridRow === 1) {
+            const randomIndex = floor(random(1, 5));
+            allPlayers.player(`hihat${randomIndex}`).start(startTime);
+        } else if (b.gridRow === 2) {
+            const randomIndex = floor(random(1, 6));
+            allPlayers.player(`SNARE${randomIndex}`).start(startTime);
+        } else if (b.gridRow === 3) {
+            const randomIndex = floor(random(1, 8));
+            allPlayers.player(`KICK${randomIndex}`).start(startTime);
         }
     });
-});
+}, "16n");
+
+// NEW: Loop to update the panner positions if 'break it' is active
+Tone.Transport.scheduleRepeat((time) => {
+    if (hasBroken) {
+        ambientPanners.forEach((panner, index) => {
+            const vel = pannerVelocities[index];
+            const newX = panner.positionX.value + vel.x;
+            const newY = panner.positionY.value + vel.y;
+            const newZ = panner.positionZ.value + vel.z;
+
+            // Adjusted for more extreme positions
+            const boundedX = Math.min(Math.max(newX, -5), 5);
+            const boundedY = Math.min(Math.max(newY, -3), 3);
+            const boundedZ = Math.min(Math.max(newZ, -2), 2);
+
+            // Update panner positions smoothly
+            panner.positionX.linearRampToValueAtTime(boundedX, time + 0.05);
+            panner.positionY.linearRampToValueAtTime(boundedY, time + 0.05);
+            panner.positionZ.linearRampToValueAtTime(boundedZ, time + 0.05);
+        });
+    }
+}, "16n");
+
 
 // Helper function
 function getRandomNumber(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-/**
- * Inverts all colors on the page by adding a CSS filter to the body.
- */
+// Helper function
 function invertColors() {
     const body = document.body;
     if (body) {
@@ -167,180 +192,222 @@ function invertColors() {
 // =================================================================
 function setup() {
     createCanvas(700, 400, WEBGL);
-
     cellWidth = width / GRID_COLS;
     cellHeight = height / GRID_ROWS;
     cellDepth = 50;
 
     for (let r = 0; r < GRID_ROWS; r++) {
-        sequencerGridVisual[r] = [];
-        sequencerGridAudio[r] = [];
-        audioOffTimers[r] = [];
         for (let c = 0; c < GRID_COLS; c++) {
-            sequencerGridVisual[r][c] = 0;
-            sequencerGridAudio[r][c] = false;
-            audioOffTimers[r][c] = 0;
+            boxes.push({
+                x: (c * cellWidth) + cellWidth / 2,
+                y: (r * cellHeight) + cellHeight / 2,
+                z: 0,
+                vx: 0,
+                vy: 0,
+                vz: 0,
+                vrx: 0,
+                vry: 0,
+                vrz: 0,
+                gridRow: r,
+                gridCol: c,
+                audioActive: false,
+                visualActive: 0
+            });
         }
     }
 
-    previousParticlePosition = createVector();
     describe(
         'A 3D grid of boxes representing a sequencer. When a box is activated, it lights up and rotates. Mouse interaction creates a trail of particles.'
     );
-
-    Tone.Transport.scheduleRepeat((time) => {
-        currentStep = (currentStep + 1) % GRID_COLS;
-
-        for (let r = 0; r < GRID_ROWS; r++) {
-            if (sequencerGridAudio[r][currentStep]) {
-                keys.player(r).start(time);
-            }
-        }
-    }, "16n");
 }
-
 
 function draw() {
     background(0);
-    // Add some camera control for 3D effect
-    // orbitControl();
-
-    // Center the grid
     translate(-width / 2, -height / 2);
 
-    for (let r = 0; r < GRID_ROWS; r++) {
-        for (let c = 0; c < GRID_COLS; c++) {
-            let x = c * cellWidth;
-            let y = r * cellHeight;
-            let z = 0;
+    for (let b of boxes) {
+        push();
+        if (hasBroken) {
+            b.x += b.vx;
+            b.y += b.vy;
+            b.vrz += random(-0.01, 0.01);
 
-            if (sequencerGridVisual[r][c] > 0) {
-                sequencerGridVisual[r][c]--;
+            if (b.x > width || b.x < 0) {
+                b.vx *= -1;
+            }
+            if (b.y > height || b.y < 0) {
+                b.vy *= -1;
             }
 
-            if (audioOffTimers[r][c] > 0) {
-                audioOffTimers[r][c]--;
-                if (audioOffTimers[r][c] === 0) {
-                    sequencerGridAudio[r][c] = false;
-                }
-            }
-
-            let opacity = map(sequencerGridVisual[r][c], 0, particleFadeFrames, 0, 55);
-
-            push();
-            translate(x + cellWidth / 2, y + cellHeight / 2, z);
-            // Rotate boxes for a more dynamic feel
-            rotateX(frameCount * 0.01 * (r + 1) / GRID_ROWS);
-            rotateY(frameCount * 0.01 * (c + 1) / GRID_COLS);
-
-            if (c === currentStep && Tone.Transport.state === 'started') {
-                emissiveMaterial(255, 100, 0); // Active step
-            } else if (sequencerGridAudio[r][c]) {
-                emissiveMaterial(0, 200, 200); // Activated cell
-            } else {
-                if (opacity > 0) {
-                    emissiveMaterial(0, 200, 200, opacity);
-                } else {
-                    normalMaterial(); // Inactive cell
-                }
-            }
-
-            box(cellWidth * 0.9, cellHeight * 0.9, cellDepth);
-            pop();
+            translate(b.x, b.y, b.z);
+            rotateZ(b.vrz);
+        } else {
+            translate(b.x, b.y, b.z);
+            rotateX(frameCount * 0.01 * (b.gridRow + 1) / GRID_ROWS);
+            rotateY(frameCount * 0.01 * (b.gridCol + 1) / GRID_COLS);
         }
-    }
 
-    for (let path of paths) {
-        path.update();
-        path.display();
+        if (b.gridCol === currentStep && Tone.Transport.state === 'started') {
+            emissiveMaterial(255, 100, 0);
+        } else if (b.audioActive) {
+            emissiveMaterial(0, 200, 200);
+        } else {
+            fill(150, 150, 150);
+        }
+
+        box(cellWidth * 0.9, cellHeight * 0.9, cellDepth);
+        pop();
     }
 }
 
-function toggleSequencerCell(col, row) {
-    if (!sequencerGridAudio || !sequencerGridAudio[row] || !sequencerGridVisual || !sequencerGridVisual[row] || !audioOffTimers || !audioOffTimers[row]) {
-        console.warn("Grids not fully initialized yet. Ignoring interaction.");
-        return;
-    }
 
-    if (col >= 0 && col < GRID_COLS && row >= 0 && row < GRID_ROWS) {
-        sequencerGridAudio[row][col] = !sequencerGridAudio[row][col];
-
-        if (sequencerGridAudio[row][col]) {
-            sequencerGridVisual[row][col] = particleFadeFrames;
-            audioOffTimers[row][col] = particleFadeFrames;
-        } else {
-            sequencerGridVisual[row][col] = 0;
-            audioOffTimers[row][col] = 0;
+function checkFloatingBoxClick(x, y) {
+    const mouseX_adjusted = x;
+    const mouseY_adjusted = y;
+    for (let b of boxes) {
+        const distance = dist(mouseX_adjusted, mouseY_adjusted, b.x, b.y);
+        const hitDistance = cellWidth * 0.7;
+        if (distance < hitDistance) {
+            toggleSequencerCell(b.gridCol, b.gridRow);
+            return true;
         }
     }
+    return false;
 }
 
 function getGridCell(x, y) {
-    let col = floor(x / cellWidth);
-    let row = floor(y / cellHeight);
+    if (x < 0 || x > width || y < 0 || y > height) {
+        return {
+            col: -1,
+            row: -1
+        };
+    }
+    let col = floor(map(x, 0, width, 0, GRID_COLS));
+    let row = floor(map(y, 0, height, 0, GRID_ROWS));
     return {
         col,
         row
     };
 }
 
+function toggleSequencerCell(col, row) {
+    if (col === -1 || row === -1) {
+        return;
+    }
+    const b = boxes.find(box => box.gridCol === col && box.gridRow === row);
+    if (!b) {
+        console.warn("Box not found for grid cell:", col, row);
+        return;
+    }
+    b.audioActive = !b.audioActive;
+    if (b.audioActive) {
+        b.visualActive = 1;
+    } else {
+        b.visualActive = 0;
+    }
+}
+
+function startSequencerAndAmbientPlayers() {
+    let startTime = Tone.now() + 0.1;
+
+    for (let i = 1; i <= 14; i++) {
+        const player = allPlayers.player(`ambient${i}`);
+        const panner = ambientPanners[i - 1];
+        player.connect(panner);
+        player.loop = true;
+        player.start(startTime);
+    }
+    
+    Tone.Transport.bpm.value = 61;
+    Tone.Transport.scheduleOnce((time) => {
+        Tone.Transport.bpm.setValueAtTime(102, time);
+    }, "4:2:0");
+    Tone.Transport.scheduleOnce((time) => {
+        Tone.Transport.bpm.setValueAtTime(144, time);
+    }, "19:2:0");
+    Tone.Transport.scheduleOnce((time) => {
+        Tone.Transport.bpm.setValueAtTime(161, time);
+    }, "35:2:0");
+        Tone.Transport.scheduleOnce((time) => {
+        Tone.Transport.bpm.setValueAtTime(144, time);
+    }, "49:2:0");
+        Tone.Transport.scheduleOnce((time) => {
+        Tone.Transport.bpm.setValueAtTime(155, time);
+    }, "57:2:0");
+        Tone.Transport.scheduleOnce((time) => {
+        Tone.Transport.bpm.setValueAtTime(134, time);
+    }, "65:2:0");
+        Tone.Transport.scheduleOnce((time) => {
+        Tone.Transport.bpm.setValueAtTime(120, time);
+    }, "73:2:0");
+        Tone.Transport.scheduleOnce((time) => {
+        Tone.Transport.bpm.setValueAtTime(151, time);
+    }, "81:2:0");
+        Tone.Transport.scheduleOnce((time) => {
+        Tone.Transport.bpm.setValueAtTime(90, time);
+    }, "95:2:0");
+        Tone.Transport.scheduleOnce((time) => {
+        Tone.Transport.bpm.setValueAtTime(161, time);
+    }, "99:2:0");
+        Tone.Transport.scheduleOnce((time) => {
+        Tone.Transport.bpm.setValueAtTime(180, time);
+    }, "113:2:0");
+   
+
+    Tone.Transport.start(startTime);
+}
+
 function mousePressed() {
-    nextParticleFrame = frameCount;
-    paths.push(new Path());
-
-    let {
-        col,
-        row
-    } = getGridCell(mouseX, mouseY);
-    toggleSequencerCell(col, row);
-
-    lastDraggedCell = {
-        row: row,
-        col: col
-    };
-
+    if (hasBroken) {
+        checkFloatingBoxClick(mouseX, mouseY);
+    } else {
+        let {
+            col,
+            row
+        } = getGridCell(mouseX, mouseY);
+        toggleSequencerCell(col, row);
+        lastDraggedCell = {
+            row: row,
+            col: col
+        };
+    }
     if (!audioStarted) {
         Tone.start().then(() => {
             console.log("Audio context started by canvas click!");
             audioStarted = true;
-            Tone.Transport.bpm.value = 61;
-            Tone.Transport.start();
+            startSequencerAndAmbientPlayers();
         }).catch(e => {
             console.error("Error starting Tone.js context:", e);
         });
     }
-
     return false;
 }
 
 function touchStarted() {
     if (touches.length > 0) {
-        nextParticleFrame = frameCount;
-        paths.push(new Path());
-
-        let {
-            col,
-            row
-        } = getGridCell(touches[0].x, touches[0].y);
-        toggleSequencerCell(col, row);
-
-        lastDraggedCell = {
-            row: row,
-            col: col
-        };
-
+        if (hasBroken) {
+            checkFloatingBoxClick(touches[0].x, touches[0].y);
+        } else {
+            let {
+                col,
+                row
+            } = getGridCell(touches[0].x, touches[0].y);
+            toggleSequencerCell(col, row);
+            lastDraggedCell = {
+                row: row,
+                col: col
+            };
+        }
         if (!audioStarted) {
             Tone.start().then(() => {
                 console.log("Audio context started by canvas touch!");
                 audioStarted = true;
-                Tone.Transport.bpm.value = 61;
-                Tone.Transport.start();
+                startSequencerAndAmbientPlayers();
             }).catch(e => {
                 console.error("Error starting Tone.js context:", e);
             });
         }
     }
-
     return false;
 }
 
@@ -349,13 +416,11 @@ function handleStartButtonClick() {
         console.warn("Start button clicked, but audio not yet loaded. Please wait.");
         return;
     }
-
     if (!audioStarted) {
         Tone.start().then(() => {
             console.log("Audio context started by start button!");
             audioStarted = true;
-            Tone.Transport.start();
-            player.start();
+            startSequencerAndAmbientPlayers();
         }).catch(e => {
             console.error("Error starting Tone.js context:", e);
         });
@@ -370,22 +435,34 @@ function handleRandomizeButtonClick() {
         return;
     }
 
-    // Invert colors on the first click
     if (!hasBroken) {
         invertColors();
         hasBroken = true;
+
+        for (let b of boxes) {
+            b.vx = getRandomNumber(-0.5, 0.5);
+            b.vy = getRandomNumber(-0.5, 0.5);
+            b.vrz = getRandomNumber(-0.01, 0.01);
+        }
+
+        // Adjusted for more extreme drift velocity
+        pannerVelocities = ambientPanners.map(() => ({
+            x: getRandomNumber(-0.5, 0.5),
+            y: getRandomNumber(-0.5, 0.5),
+            z: getRandomNumber(-0.5, 0.5),
+        }));
     }
 
     if (!audioStarted) {
         Tone.start().then(() => {
             console.log("Audio context started by randomize button!");
             audioStarted = true;
-            randomizeAndStart();
+            startSequencerAndAmbientPlayers();
         }).catch(e => {
             console.error("Error starting Tone.js context:", e);
         });
     } else {
-        randomizeAndStart();
+        console.log("Audio is already running. Randomize button only changes visuals.");
     }
 }
 
@@ -394,96 +471,11 @@ function mouseDragged() {
         col,
         row
     } = getGridCell(mouseX, mouseY);
-
     if (col !== lastDraggedCell.col || row !== lastDraggedCell.row) {
         toggleSequencerCell(col, row);
         lastDraggedCell = {
             row: row,
             col: col
         };
-    }
-
-    if (frameCount >= nextParticleFrame) {
-        createParticle();
-    }
-}
-
-function createParticle() {
-    let mousePosition = createVector(mouseX, mouseY);
-    let velocity = p5.Vector.sub(mousePosition, previousParticlePosition);
-    velocity.mult(0.05);
-
-    let lastPath = paths[paths.length - 1];
-    if (lastPath) {
-        lastPath.addParticle(mousePosition, velocity);
-    }
-
-    nextParticleFrame = frameCount + framesBetweenParticles;
-    previousParticlePosition.set(mouseX, mouseY);
-}
-
-class Path {
-    constructor() {
-        this.particles = [];
-    }
-
-    addParticle(position, velocity) {
-        let particleHue = (this.particles.length * 30) % 360;
-        this.particles.push(new Particle(position, velocity, particleHue));
-    }
-
-    update() {
-        for (let particle of this.particles) {
-            particle.update();
-        }
-    }
-
-    connectParticles(particleA, particleB) {
-        let opacity = particleA.framesRemaining / particleFadeFrames;
-        stroke(255, opacity);
-        line(
-            particleA.position.x,
-            particleA.position.y,
-            particleB.position.x,
-            particleB.position.y
-        );
-    }
-
-    display() {
-        for (let i = this.particles.length - 1; i >= 0; i -= 1) {
-            if (this.particles[i].framesRemaining <= 0) {
-                this.particles.splice(i, 1);
-            } else {
-                this.particles[i].display();
-                if (i < this.particles.length - 1) {
-                    this.connectParticles(this.particles[i], this.particles[i + 1]);
-                }
-            }
-        }
-    }
-}
-
-class Particle {
-    constructor(position, velocity, hue) {
-        this.position = position.copy();
-        this.velocity = velocity.copy();
-        this.hue = hue;
-        this.drag = 0.95;
-        this.framesRemaining = particleFadeFrames;
-    }
-
-    update() {
-        this.position.add(this.velocity);
-        this.velocity.mult(this.drag);
-        this.framesRemaining = this.framesRemaining - 1;
-    }
-
-    display() {
-        let opacity = this.framesRemaining / particleFadeFrames;
-        noStroke();
-        colorMode(HSB, 360, 100, 100, 1);
-        fill(this.hue, 80, 90, opacity);
-        circle(this.position.x, this.position.y, 24);
-        colorMode(RGB, 255, 255, 255, 255);
     }
 }

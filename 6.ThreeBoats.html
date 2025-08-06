@@ -28,20 +28,22 @@
                 margin: 0;
                 overflow-y: auto;
                 overflow-x: hidden;
-                touch-action: manipulation; /* Applied to body */
+                touch-action: manipulation;
                 padding: 0;
-                background-color: #f4f4f4;
-                color: #333;
+                /* CHANGE: Set the background color to black */
+                background-color: black;
+                color: #f4f4f4; /* Updated text color for better contrast on a black background */
                 display: flex;
                 flex-direction: column;
                 min-height: 10vh;
                 align-items: center;
-                overflow: hidden; /* Prevents both horizontal and vertical scrollbars */
-                height: 100%; /* Ensures the body truly takes up 100% of the viewport height */
+                overflow: hidden;
+                height: 100%;
             }
 
             h1 {
-                color: #0056b3;
+                /* Updated heading color for better contrast */
+                color: #f4f4f4;
                 text-align: center;
                 margin-top: 20px;
                 margin-bottom: 10px;
@@ -85,7 +87,8 @@
                 max-width: 800px;
                 margin: 20px auto 40px auto;
                 padding: 20px;
-                background-color: white;
+                /* CHANGE: Updated background for contrast */
+                background-color: #111;
                 border-radius: 8px;
                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                 line-height: 1.6;
@@ -120,7 +123,8 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background-color: #333;
+                /* CHANGE: Set the background color to black */
+                background-color: black;
                 color: white;
                 display: flex;
                 flex-direction: column;
@@ -193,7 +197,7 @@
                 cursor: pointer;
                 border-radius: 5px;
                 transition: background-color 0.3s ease;
-                touch-action: manipulation; /* Explicitly apply to the button */
+                touch-action: manipulation;
             }
 
             .dropbtn:hover, .dropbtn:focus {
@@ -220,7 +224,7 @@
                 display: block;
                 text-align: left;
                 transition: background-color 0.2s;
-                touch-action: manipulation; /* Explicitly apply to the links */
+                touch-action: manipulation;
             }
 
             .dropdown-content a:hover {
@@ -305,93 +309,46 @@
     document.addEventListener('DOMContentLoaded', function() {
         const dropbtn = document.getElementById('albumDropdownBtn');
         const dropdownContent = document.getElementById('albumDropdownContent');
-        const dropdownContainer = dropbtn.parentNode; // The .dropdown div
+        const dropdownContainer = dropbtn.parentNode;
 
         if (dropbtn && dropdownContent && dropdownContainer) {
-
-            // Cache all dropdown links
             const dropdownLinks = dropdownContent.querySelectorAll('a');
-
-            // Function to toggle dropdown visibility (used by click/tap)
             const toggleDropdown = function(event) {
-                // Prevent event from bubbling up to window and immediately closing
                 event.stopPropagation();
                 dropdownContent.classList.toggle('show');
             };
 
-            // Event listener for the dropdown button
-            // This handles both desktop clicks and mobile taps
             dropbtn.addEventListener('click', toggleDropdown);
             dropbtn.addEventListener('touchend', function(event) {
-                // Prevent default tap behavior to avoid synthetic click and double-toggle
-                // This is crucial for the button itself to prevent unwanted behavior.
                 event.preventDefault();
                 event.stopPropagation();
-                toggleDropdown(event); // Call the toggle function
-            }, { passive: false }); // passive: false is crucial for preventDefault() to work
+                toggleDropdown(event);
+            }, { passive: false });
 
-            // --- IMPORTANT: Handle Taps on Links Directly ---
             dropdownLinks.forEach(link => {
-                // For direct link taps:
                 link.addEventListener('touchend', function(event) {
-                    // Prevent default to stop synthetic click, IF AND ONLY IF we plan to navigate manually
-                    // For direct navigation, we typically don't preventDefault here
-                    // if the link itself is meant to be followed.
-                    // The goal is to ensure the browser's default link-following behavior is not suppressed.
-
-                    // If you're encountering phantom clicks or other weirdness:
-                    // event.preventDefault(); // Uncomment if you suspect a phantom click is interfering
-                    event.stopPropagation(); // Stop event from bubbling up to window or parent dropdown.
-
-                    // If you call preventDefault() above, you MUST manually navigate:
-                    // window.location.href = this.href;
-                    // console.log("Manual navigation to: " + this.href);
-
-                    // Otherwise, rely on the browser's default click behavior (which will fire after touchend)
-                    // If the problem is that the *click* event isn't firing, then force navigation.
-                    // If `return false;` in p5.js or other `preventDefault` is global, this manual navigation is a fallback.
-                    console.log("Link touchend detected for: " + this.href);
-                    
-                    // Allow a tiny delay to ensure all other DOM processing for touch is done
-                    // before forcing navigation. This can sometimes help.
+                    event.stopPropagation();
                     setTimeout(() => {
                          window.location.href = this.href;
-                    }, 50); // Small delay
-
-                    // Immediately close the dropdown after tapping a link
+                    }, 50);
                     dropdownContent.classList.remove('show');
+                }, { passive: false });
 
-                }, { passive: false }); // Needs to be false if you ever use preventDefault()
-
-                // Optional: For very old Android browsers that might not respond to touchend
-                // and if the click is consistently being swallowed, a very direct approach:
                 link.addEventListener('click', function(event) {
-                    // This listener is typically redundant if touchend works,
-                    // but it's a fallback. If touchend + preventDefault is used,
-                    // a synthetic click might not fire.
-                    console.log("Link click detected for: " + this.href);
-                    event.stopPropagation(); // Stop it from closing dropdown if it propagated to window
-                    // The browser's default action (following the link) should happen.
+                    event.stopPropagation();
                 });
             });
-            // --- END IMPORTANT ---
 
-
-            // Close dropdown if clicked/tapped outside
             window.addEventListener('click', function(event) {
-                // If the target is not part of the dropdown and the dropdown is open, close it.
                 if (!event.target.closest('.dropdown') && dropdownContent.classList.contains('show')) {
                     dropdownContent.classList.remove('show');
                 }
             });
             window.addEventListener('touchend', function(event) {
-                // Similar logic for touchend to close dropdown on outside tap
-                // Be extremely careful with preventDefault() here if you're not navigating something specific.
-                // It can prevent other elements' default touch behaviors (like scrolling).
                 if (!event.target.closest('.dropdown') && dropdownContent.classList.contains('show')) {
                     dropdownContent.classList.remove('show');
                 }
-            }, { passive: false }); // Still set passive: false if `closest` method might require `preventDefault`
+            }, { passive: false });
         }
         
     });

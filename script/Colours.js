@@ -4,15 +4,15 @@ const limiter = new Tone.Limiter(-2).toDestination();
 
 // Use Tone.Player with URL directly.
 const AcousticPlayer = new Tone.Player({
-    url: "./audio/COLOURS/ACOUSTIC.mp3", // Ensure .mp3 path
+    url: "./audio/COLOURS/ACOUSTIC.mp3",
     loop: true,
 }).sync();
 const AtmosPlayer = new Tone.Player({
-    url: "./audio/COLOURS/ATMOS.mp3", // Ensure .mp3 path
+    url: "./audio/COLOURS/ATMOS.mp3",
     loop: true,
 }).sync();
 const ElectronicPlayer = new Tone.Player({
-    url: "./audio/COLOURS/ELECTRONIC.mp3", // Ensure .mp3 path
+    url: "./audio/COLOURS/ELECTRONIC.mp3",
     loop: true,
 }).sync();
 
@@ -24,6 +24,11 @@ const AcousticVolumeChannel = new Tone.Channel();
 const AtmosVolumeChannel = new Tone.Channel();
 const ElectronicVolumeChannel = new Tone.Channel();
 
+// --- NEW: Add a Tone.Panner3D for each stem ---
+const AcousticPanner = new Tone.Panner3D(0, 0, 0);
+const AtmosPanner = new Tone.Panner3D(0, 0, 0);
+const ElectronicPanner = new Tone.Panner3D(0, 0, 0);
+
 // This channel will sum the "dry" signals from all players BEFORE effects
 const DryVolumeChannel = new Tone.Channel();
 
@@ -31,9 +36,9 @@ const DryVolumeChannel = new Tone.Channel();
 const crossFade = new Tone.CrossFade().connect(limiter);
 
 // Effects Chain
-const chorus = new Tone.Chorus().start(); // Start LFO effects immediately
-const autoFilter = new Tone.AutoFilter().start(); // Start LFO effects immediately
-const reverb = new Tone.Reverb(); // Reverb's output will connect to crossFade.a
+const chorus = new Tone.Chorus().start();
+const autoFilter = new Tone.AutoFilter().start();
+const reverb = new Tone.Reverb();
 
 // --- Corrected Signal Flow ---
 // 1. Players send their signal to their individual volume channels
@@ -41,24 +46,29 @@ AcousticPlayer.connect(AcousticVolumeChannel);
 AtmosPlayer.connect(AtmosVolumeChannel);
 ElectronicPlayer.connect(ElectronicVolumeChannel);
 
-// 2. Individual volume channels send their signal to the DryVolumeChannel for the dry mix
-AcousticVolumeChannel.connect(DryVolumeChannel);
-AtmosVolumeChannel.connect(DryVolumeChannel);
-ElectronicVolumeChannel.connect(DryVolumeChannel);
+// 2. Individual volume channels send their signal to the Panner
+AcousticVolumeChannel.connect(AcousticPanner);
+AtmosVolumeChannel.connect(AtmosPanner);
+ElectronicVolumeChannel.connect(ElectronicPanner);
 
-// 3. Individual volume channels also send their signal into the effects chain
-AcousticVolumeChannel.connect(chorus);
-AtmosVolumeChannel.connect(chorus);
-ElectronicVolumeChannel.connect(chorus);
+// 3. The Panners now have the stem's signal and send their output to the DryVolumeChannel for the dry mix
+AcousticPanner.connect(DryVolumeChannel);
+AtmosPanner.connect(DryVolumeChannel);
+ElectronicPanner.connect(DryVolumeChannel);
 
-// 4. Effects are chained together
+// 4. Panners also send their signal into the effects chain
+AcousticPanner.connect(chorus);
+AtmosPanner.connect(chorus);
+ElectronicPanner.connect(chorus);
+
+// 5. Effects are chained together
 chorus.connect(autoFilter);
 autoFilter.connect(reverb);
 
-// 5. Reverb (wet signal) goes to crossFade.a
+// 6. Reverb (wet signal) goes to crossFade.a
 reverb.connect(crossFade.a);
 
-// 6. DryVolumeChannel (dry signal) goes to crossFade.b
+// 7. DryVolumeChannel (dry signal) goes to crossFade.b
 DryVolumeChannel.connect(crossFade.b);
 
 // Set initial crossfade value (e.g., balanced dry/wet)
@@ -142,31 +152,27 @@ function hideLoadingScreen() {
 }
 
 function handleStartButtonClick() {
-    // Only attempt to start if audio files are loaded and context hasn't been started yet
     if (audioLoadedAndReady && !audioContextStarted) {
         console.log("Start button clicked. Attempting to start audio context.");
         Tone.start().then(() => {
             console.log("Tone.context resumed successfully! 🔊");
-            audioContextStarted = true; // Mark context as started
-            startPlayersAndTransport(); // Start playback now
-            hideLoadingScreen(); // Hide the entire loading overlay after audio starts
+            audioContextStarted = true;
+            startPlayersAndTransport();
+            hideLoadingScreen();
         }).catch(e => {
             console.error("Error resuming Tone.context:", e);
             alert("Failed to start audio. Please ensure your device's media volume is up and try again.");
         });
     } else if (audioContextStarted) {
         console.log("Audio context already started. Hiding loading screen.");
-        hideLoadingScreen(); // Just hide the loading screen if context is already running
+        hideLoadingScreen();
     } else {
         console.warn("Start button clicked but audio not yet loaded. Please wait.");
     }
 }
 
-let hasBroken = false; // Flag to track if the 'break it' button has been clicked before
+let hasBroken = false;
 
-/**
- * Inverts all colors on the page by adding a CSS filter to the body.
- */
 function invertColors() {
     const body = document.body;
     if (body) {
@@ -176,11 +182,6 @@ function invertColors() {
     }
 }
 
-
-/**
- * Main function for the "break it" button.
- * It randomizes both the audio stems and the visual positions of the shapes.
- */
 function handleRandomizeButtonClick() {
     if (!audioLoadedAndReady) {
         console.warn("Randomize button clicked, but audio not yet loaded. Please wait.");
@@ -197,14 +198,14 @@ function handleRandomizeButtonClick() {
             console.log("Tone.context resumed successfully! 🔊");
             audioContextStarted = true;
             randomizeAndStart();
-            randomizeShapePositions(); // NEW: Randomize shape positions
+            randomizeShapePositions();
             hideLoadingScreen();
         }).catch(e => {
             console.error("Error resuming Tone.context:", e);
         });
     } else {
         randomizeAndStart();
-        randomizeShapePositions(); // NEW: Randomize shape positions
+        randomizeShapePositions();
     }
 }
 
@@ -218,7 +219,6 @@ function startPlayersAndTransport() {
     }
 }
 
-// --- DOMContentLoaded for Loading & Initial Setup ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Content Loaded.");
 
@@ -241,11 +241,10 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Randomize button not found!");
     }
 
-    // Wait for all Tone.Player buffers to load
     Tone.loaded().then(() => {
         console.log("All Tone.Player audio files loaded!");
-        audioLoadedAndReady = true; // Set flag
-        showButtons(); // Display the start and randomize buttons
+        audioLoadedAndReady = true;
+        showButtons();
     }).catch(error => {
         console.error("Error loading audio files (Tone.loaded()):", error);
         alert("Failed to load audio files. Please check paths and network console for errors.");
@@ -260,11 +259,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let shapes = [];
 let draggedShape = null;
-let prevMouseX, prevMouseY; // For desktop mouse tracking
-let prevTouchX, prevTouchY; // For mobile touch tracking
+let prevMouseX, prevMouseY;
+let prevTouchX, prevTouchY;
 
 function setup() {
-    // Canvas fills the entire window and is set to WEBGL mode
     const canvas = createCanvas(700, 400, WEBGL);
     canvas.parent('canvas-container');
 
@@ -280,7 +278,6 @@ function setup() {
     );
 }
 
-// NEW: Function to initialize or reset shapes to their default positions
 function initializeShapes() {
     shapes = [{
         name: 'plane',
@@ -317,9 +314,7 @@ function initializeShapes() {
     }, ];
 }
 
-// NEW: Function to randomize the positions of the shapes
 function randomizeShapePositions() {
-    const margin = 50; // Ensure shapes don't go off screen
     const xPositions = [-width / 4, width / 4];
     const yPositions = [-height / 8, height / 8];
     const shuffledPositions = shuffle([
@@ -372,13 +367,10 @@ function draw() {
     pop();
 }
 
-// --- Unified Interaction Handlers for Mouse and Touch ---
-
 function handleInteractionStart(inputX, inputY) {
-    // Only allow interaction if audio context has successfully started
     if (!audioContextStarted) {
         console.warn("Audio context not started yet. Ignoring interaction on canvas.");
-        return false; // Do not process interaction if audio isn't ready
+        return false;
     }
 
     let xAdjusted = inputX - width / 2;
@@ -401,14 +393,13 @@ function handleInteractionStart(inputX, inputY) {
                 prevTouchY = inputY;
             }
             console.log(`Interaction started on ${shape.name}.`);
-            return false; // Prevent default behavior
+            return false;
         }
     }
-    return true; // Allow default behavior
+    return true;
 }
 
 function handleInteractionDrag(currentX, currentY) {
-    // Only allow interaction if audio context has successfully started
     if (!audioContextStarted) {
         return false;
     }
@@ -434,11 +425,44 @@ function handleInteractionDrag(currentX, currentY) {
         currentShape.rotY += deltaX * 0.5;
         currentShape.rotX -= deltaY * 0.5;
 
-        const audioSensitivity = 5.0;
+        // --- NEW LOGIC: MAP SPHERE ROTATION TO PANNER 3D POSITIONS ---
+        if (currentShape.name === 'sphere') {
+            const rotX = currentShape.rotX % 360;
+            const rotY = currentShape.rotY % 360;
 
+            // Map the rotation values to the panner's coordinate system
+            // The panner3D uses a coordinate system where -1 to 1 is a good range
+            // Y-rotation maps to X-position (horizontal)
+            const mappedPannerX = map(rotY, -180, 180, -1, 1);
+
+            // X-rotation maps to Y-position (vertical)
+            const mappedPannerY = map(rotX, -180, 180, -1, 1);
+
+            // The Z-position can be mapped to something else, like a combination of both rotations,
+            // or we can just make it static. Let's make it a combination for more depth.
+            const mappedPannerZ = map((rotX + rotY) % 360, -360, 360, -1, 1);
+
+            // Apply the new position to all three panners
+            AcousticPanner.positionX.value = mappedPannerX;
+            AcousticPanner.positionY.value = mappedPannerY;
+            AcousticPanner.positionZ.value = mappedPannerZ;
+
+            AtmosPanner.positionX.value = mappedPannerX;
+            AtmosPanner.positionY.value = mappedPannerY;
+            AtmosPanner.positionZ.value = mappedPannerZ;
+
+            ElectronicPanner.positionX.value = mappedPannerX;
+            ElectronicPanner.positionY.value = mappedPannerY;
+            ElectronicPanner.positionZ.value = mappedPannerZ;
+
+            console.log(`Panner3D Position - X: ${mappedPannerX.toFixed(2)}, Y: ${mappedPannerY.toFixed(2)}, Z: ${mappedPannerZ.toFixed(2)}`);
+        }
+        // --- END NEW LOGIC ---
+
+        // The rest of the effect controls remain the same
         if (currentShape.name === 'box') {
-            const decayMin = 0.5,
-                decayMax = 20;
+            const decayMin = 0.01,
+                decayMax = 60;
             const wetMin = 0.,
                 wetMax = 1.;
             const partialMin = 0.,
@@ -451,9 +475,7 @@ function handleInteractionDrag(currentX, currentY) {
             reverb.wet.value = constrain(mappedWet, wetMin, wetMax);
 
             let mappedPartial = map(currentShape.rotX % 360, -180, 180, partialMin, partialMax);
-            reverb.partial = constrain(mappedPartial, partialMin, partialMax); // Corrected: should be partialMax here
-
-            // console.log(`Reverb - Decay: ${reverb.decay.toFixed(2)}, Partial: ${reverb.partial.toFixed(2)}, Wet: ${reverb.wet.value.toFixed(2)}`);
+            reverb.partial = constrain(mappedPartial, partialMin, partialMax);
         }
 
         if (currentShape.name === 'torus') {
@@ -477,20 +499,21 @@ function handleInteractionDrag(currentX, currentY) {
 
             let mappedOctaves = map(currentShape.rotX % 360, -180, 180, octavesMin, octavesMax);
             autoFilter.octaves = constrain(mappedOctaves, octavesMin, octavesMax);
-
-            // console.log(`Autofilter - Depth: ${autoFilter.depth.value.toFixed(2)}, Freq: ${autoFilter.frequency.value.toFixed(2)}, BaseFreq: ${autoFilter.baseFrequency.toFixed(2)}, Octaves: ${autoFilter.octaves.toFixed(2)}`);
         }
 
         if (currentShape.name === 'plane') {
-            const freqMin = 0.1,
-                freqMax = 10.0;
+            const freqMin = 0.01,
+                freqMax = 1000.0;
             const feedbackMin = 0.0,
-                feedbackMax = 0.9;
-            const delayMin = 0.001,
-                delayMax = 0.05;
+                feedbackMax = 0.999;
+            const delayMin = 0.0001,
+                delayMax = 0.1;
+            const depthMin = 0.0,
+                depthMax = 1.0;
 
-            let mappedFrequency = map(currentShape.rotY % 360, -180, 180, freqMin, freqMax);
-            chorus.frequency.value = constrain(mappedFrequency, freqMin, freqMax);
+            let mappedFrequency = map(currentShape.rotY % 360, -180, 180, log(freqMin), log(freqMax));
+            chorus.frequency.value = exp(mappedFrequency);
+            chorus.frequency.value = constrain(chorus.frequency.value, freqMin, freqMax);
 
             let mappedFeedback = map(currentShape.rotX % 360, -180, 180, feedbackMin, feedbackMax);
             chorus.feedback.value = constrain(mappedFeedback, feedbackMin, feedbackMax);
@@ -498,18 +521,20 @@ function handleInteractionDrag(currentX, currentY) {
             let mappedDelay = map(currentShape.rotX % 360, -180, 180, delayMin, delayMax);
             chorus.delayTime = constrain(mappedDelay, delayMin, delayMax);
 
-            // console.log(`Chorus - Freq: ${chorus.frequency.value.toFixed(2)}, Feedback: ${chorus.feedback.value.toFixed(2)}, Delay: ${chorus.delayTime.toFixed(4)}`);
+            let mappedDepth = map(currentShape.rotY % 360, -180, 180, depthMin, depthMax);
+            chorus.depth = constrain(mappedDepth, depthMin, depthMax);
         }
-
-        if (currentShape.name === 'sphere') {
+        
+        if (currentShape.name === 'sphere' && currentShape.name !== 'sphere') {
+            // This is a catch-all in case the above logic doesn't apply.
+            // Original dry/wet fade control on the sphere is moved.
+            // The new sphere logic now handles panning, not fading.
             const fadeMin = 0.,
                 fadeMax = 1.;
-
             let mappedFade = map(currentShape.rotY % 360, -180, 180, fadeMin, fadeMax);
             crossFade.fade.value = constrain(mappedFade, fadeMin, fadeMax);
-
-            // console.log(`CrossFade (Dry/Wet) - Fade: ${crossFade.fade.value.toFixed(2)}`);
         }
+
         return false;
     }
     return true;
@@ -525,7 +550,6 @@ function handleInteractionEnd() {
 }
 
 function mousePressed() {
-    // Only return false (prevent default) if handleInteractionStart actually found a shape.
     return handleInteractionStart(mouseX, mouseY);
 }
 
@@ -539,10 +563,9 @@ function mouseReleased() {
 
 function touchStarted() {
     if (touches.length > 0) {
-        // Same logic: if a shape is hit, prevent default. Otherwise, allow.
         return handleInteractionStart(touches[0].x, touches[0].y);
     }
-    return true; // Allow default if no shape was touched or if touches.length is 0
+    return true;
 }
 
 function touchMoved() {
@@ -559,14 +582,10 @@ function touchEnded() {
     return true;
 }
 
-
-// --- Responsive Canvas Handling ---
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
-    // When the window is resized, maintain the current shapes but adjust their positions
-    // based on the new canvas dimensions.
     const newShapes = shapes.map(s => {
-        let newX = s.x; // Simplified example, adjust as needed for responsive layout
+        let newX = s.x;
         let newY = s.y;
         return {
             ...s,
@@ -577,16 +596,12 @@ function windowResized() {
     shapes = newShapes;
 }
 
-// Fisher-Yates shuffle algorithm for array randomization
 function shuffle(array) {
     let currentIndex = array.length,
         randomIndex;
-    // While there remain elements to shuffle.
     while (currentIndex != 0) {
-        // Pick a remaining element.
         randomIndex = Math.floor(Math.random() * currentIndex);
         currentIndex--;
-        // And swap it with the current element.
         [array[currentIndex], array[randomIndex]] = [
             array[randomIndex], array[currentIndex]
         ];

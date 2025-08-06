@@ -11,6 +11,8 @@ let audioStarted = false;
 
 // Tone.js variables
 const panners = [];
+const rmsMeters = [];
+let audioPlayers = [];
 let audioUpdateNeeded = false;
 let previousBoidCount = 0;
 
@@ -59,18 +61,22 @@ function createPlayerPlusPanner(url, initialPositionX, initialPositionY, initial
         positionY: initialPositionY,
         positionZ: initialPositionZ,
     }).connect(comp);
+    
+    const meter = new Tone.Meter({
+        channels: 1,
+        smoothing: 0.8
+    });
+    panner.connect(meter);
+    rmsMeters.push(meter);
 
     const player = new Tone.Player({
         url,
         loop: true,
     }).connect(panner).sync().start(0);
-
+    
+    audioPlayers.push(player);
     panners.push(panner);
 }
-
-createPlayerPlusPanner("./audio/ThreeBoats/acoustic.mp3", -2, 0, 0);
-createPlayerPlusPanner("./audio/ThreeBoats/electronic.mp3", 2, 0, 1);
-
 
 function getRandomNumber(min, max) {
     return Math.random() * (max - min) + min;
@@ -79,6 +85,12 @@ function getRandomNumber(min, max) {
 const xRange = { min: -5, max: 5 };
 const yRange = { min: -1, max: 1 };
 const zRange = { min: 0, max: 10 };
+
+// Loop to load all 19 stems dynamically
+for (let i = 1; i <= 19; i++) {
+    const filePath = `./audio/ThreeBoats/${i}.mp3`;
+    createPlayerPlusPanner(filePath, getRandomNumber(-5, 5), getRandomNumber(-1, 1), getRandomNumber(0, 10));
+}
 
 function setRotation(angle) {
     Tone.Listener.forwardX.value = Math.sin(angle);
@@ -96,7 +108,7 @@ function setup() {
     spawnBoats();
 
     describe(
-        'Three unique, randomly chosen boat images whose position, size, and orientation changes on click or touch.'
+        '19 unique boat images whose position and color changes with the audio stems they are linked to.'
     );
 
     Tone.loaded().then(() => {
@@ -117,20 +129,21 @@ function setup() {
 function spawnBoats() {
     boats = [];
     
-    // Create a temporary, shuffled copy of the images array
     let availableImages = shuffle([...boatImages]);
 
-    // Spawn 3 boats with unique images
-    for (let i = 0; i < 3; i++) {
-        // We can now safely pick the first item from the shuffled array
-        const uniqueImage = availableImages[i];
+    for (let i = 0; i < panners.length; i++) {
+        const uniqueImage = availableImages[i % availableImages.length];
         
         const newBoat = {
             image: uniqueImage,
+            panner: panners[i],
+            meter: rmsMeters[i],
             x: random(width),
             y: random(height),
             size: random(50, 150),
-            isFlipped: random() > 0.5
+            isFlipped: random() > 0.5,
+            // NEW: Add a velocity vector for slow drifting
+            velocity: createVector(random(-0.5, 0.5), random(-0.5, 0.5))
         };
 
         boats.push(newBoat);
@@ -150,9 +163,32 @@ function draw() {
                 scale(-1, 1);
             }
             
+            const rmsValue = boat.meter.getValue();
+            const dynamicBrightness = map(rmsValue, -60, -10, 20, 100, true);
+            
+            colorMode(HSB, 100);
+            
+            tint(50, 100, dynamicBrightness);
+            
             image(boat.image, 0, 0, boat.size, boat.size);
             
             pop();
+
+            // NEW: Update boat position based on its velocity
+            boat.x += boat.velocity.x;
+            boat.y += boat.velocity.y;
+
+            // NEW: Wrap-around boundary logic
+            if (boat.x > width + boat.size / 2) {
+                boat.x = -boat.size / 2;
+            } else if (boat.x < -boat.size / 2) {
+                boat.x = width + boat.size / 2;
+            }
+            if (boat.y > height + boat.size / 2) {
+                boat.y = -boat.size / 2;
+            } else if (boat.y < -boat.size / 2) {
+                boat.y = height + boat.size / 2;
+            }
         }
     }
 }
@@ -171,8 +207,6 @@ function touchStarted() {
 }
 
 function regenerateBoats() {
-    // This function will respawn all the boats with new, unique images,
-    // as well as new positions, sizes, and flips.
     spawnBoats();
 }
 
