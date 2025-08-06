@@ -75,6 +75,38 @@ for (let i = 0; i < 14; i++) {
     ambientPanners.push(panner);
 }
 
+// NEW: Separate panners for each sequencer channel
+const glitchPanner = new Tone.Panner3D({
+    panningModel: "HRTF",
+    positionX: getRandomNumber(-5, 5),
+    positionY: getRandomNumber(-3, 3),
+    positionZ: getRandomNumber(-2, 2),
+    refDistance: 0.5
+}).connect(comp);
+
+const hihatPanner = new Tone.Panner3D({
+    panningModel: "HRTF",
+    positionX: getRandomNumber(-5, 5),
+    positionY: getRandomNumber(-3, 3),
+    positionZ: getRandomNumber(-2, 2),
+    refDistance: 0.5
+}).connect(comp);
+
+const snarePanner = new Tone.Panner3D({
+    panningModel: "HRTF",
+    positionX: getRandomNumber(-5, 5),
+    positionY: getRandomNumber(-3, 3),
+    positionZ: getRandomNumber(-2, 2),
+    refDistance: 0.5
+}).connect(comp);
+
+const kickPanner = new Tone.Panner3D({
+    panningModel: "HRTF",
+    positionX: getRandomNumber(-5, 5),
+    positionY: getRandomNumber(-3, 3),
+    positionZ: getRandomNumber(-2, 2),
+    refDistance: 0.5
+}).connect(comp);
 
 // --- DOMContentLoaded for Loading & Initial Setup ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -121,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadingText.textContent = "Ready to Play!";
             }
         }
-    }).toDestination();
+    });
 });
 
 // Sequencer for grid sounds
@@ -133,18 +165,30 @@ Tone.Transport.scheduleRepeat((time) => {
         const offset = index * 0.001;
         const startTime = Tone.Time(time).toSeconds() + offset;
 
+        let playerToPlay;
+        let pannerToUse;
+
         if (b.gridRow === 0) {
             const randomIndex = floor(random(1, 65));
-            allPlayers.player(`glitch${randomIndex}`).start(startTime);
+            playerToPlay = allPlayers.player(`glitch${randomIndex}`);
+            pannerToUse = glitchPanner;
         } else if (b.gridRow === 1) {
             const randomIndex = floor(random(1, 5));
-            allPlayers.player(`hihat${randomIndex}`).start(startTime);
+            playerToPlay = allPlayers.player(`hihat${randomIndex}`);
+            pannerToUse = hihatPanner;
         } else if (b.gridRow === 2) {
             const randomIndex = floor(random(1, 6));
-            allPlayers.player(`SNARE${randomIndex}`).start(startTime);
+            playerToPlay = allPlayers.player(`SNARE${randomIndex}`);
+            pannerToUse = snarePanner;
         } else if (b.gridRow === 3) {
             const randomIndex = floor(random(1, 8));
-            allPlayers.player(`KICK${randomIndex}`).start(startTime);
+            playerToPlay = allPlayers.player(`KICK${randomIndex}`);
+            pannerToUse = kickPanner;
+        }
+        
+        if (playerToPlay) {
+            playerToPlay.connect(pannerToUse);
+            playerToPlay.start(startTime);
         }
     });
 }, "16n");
@@ -152,7 +196,10 @@ Tone.Transport.scheduleRepeat((time) => {
 // NEW: Loop to update the panner positions if 'break it' is active
 Tone.Transport.scheduleRepeat((time) => {
     if (hasBroken) {
-        ambientPanners.forEach((panner, index) => {
+        // Create a single array of all panners to iterate over
+        const allPanners = [...ambientPanners, glitchPanner, hihatPanner, snarePanner, kickPanner];
+
+        allPanners.forEach((panner, index) => {
             const vel = pannerVelocities[index];
             const newX = panner.positionX.value + vel.x;
             const newY = panner.positionY.value + vel.y;
@@ -438,20 +485,32 @@ function handleRandomizeButtonClick() {
     if (!hasBroken) {
         invertColors();
         hasBroken = true;
-
-        for (let b of boxes) {
-            b.vx = getRandomNumber(-0.5, 0.5);
-            b.vy = getRandomNumber(-0.5, 0.5);
-            b.vrz = getRandomNumber(-0.01, 0.01);
-        }
-
-        // Adjusted for more extreme drift velocity
-        pannerVelocities = ambientPanners.map(() => ({
-            x: getRandomNumber(-0.5, 0.5),
-            y: getRandomNumber(-0.5, 0.5),
-            z: getRandomNumber(-0.5, 0.5),
-        }));
     }
+    
+    // This section is now outside the 'if (!hasBroken)' block, so it runs on every click.
+    for (let b of boxes) {
+        b.vx = getRandomNumber(-0.5, 0.5);
+        b.vy = getRandomNumber(-0.5, 0.5);
+        b.vrz = getRandomNumber(-0.01, 0.01);
+    }
+
+    // Combine all panners into a single array for easier randomization
+    const allPanners = [...ambientPanners, glitchPanner, hihatPanner, snarePanner, kickPanner];
+    
+    // Randomize the initial positions of all panners
+    allPanners.forEach(panner => {
+        panner.positionX.value = getRandomNumber(-5, 5);
+        panner.positionY.value = getRandomNumber(-3, 3);
+        panner.positionZ.value = getRandomNumber(-2, 2);
+    });
+    
+    // Adjusted for more extreme drift velocity
+    pannerVelocities = allPanners.map(() => ({
+        x: getRandomNumber(-0.5, 0.5),
+        y: getRandomNumber(-0.5, 0.5),
+        z: getRandomNumber(-0.5, 0.5),
+    }));
+
 
     if (!audioStarted) {
         Tone.start().then(() => {
