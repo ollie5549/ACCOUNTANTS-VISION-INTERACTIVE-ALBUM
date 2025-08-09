@@ -6,6 +6,31 @@ let canvasHeight = 400; // Initial height
 let rotationSpeed = 0.25; // Initial rotation speed
 let hasBroken = false; // Flag to track if the 'break it' button has been clicked before
 
+// A list of objects for the PNG images, including their dimensions
+const pngImages = [{
+    url: './assets/dragon1.png',
+    width: 250,
+    height: 350
+}, {
+    url: './assets/dragon2.png',
+    width: 400,
+    height: 300
+}, {
+    url: './assets/dragon3.png',
+    width: 300,
+    height: 300
+}, {
+    url: './assets/dragon4.png',
+    width: 500,
+    height: 200
+}, // Add more of your own PNG image objects here
+];
+
+let selectedImage; // Variable to hold the p5.js PImage object
+let selectedImageWidth = 150; // Initial size for a placeholder
+let selectedImageHeight = 150; // Initial size for a placeholder
+let imageIsReady = false; // NEW: A flag to prevent glitching
+
 // =================================================================
 // Tone.js Setup
 // =================================================================
@@ -173,6 +198,9 @@ function randomizeAll() {
         console.log("Audio context not yet started. Press Start first.");
     }
 
+    // 4. Randomize the image model
+    selectRandomImage();
+
     console.log(`Canvas resized to: ${canvasWidth}x${canvasHeight}`);
     console.log(`Rotation speed set to: ${rotationSpeed}`);
 }
@@ -192,7 +220,7 @@ function randomizeAndStart(maxOffset, minRate, maxRate) {
 
     players.forEach(player => {
         const randomDelay = getRandomNumber(0, maxOffset);
-        const randomRate = getRandomNumber(0.3, 4);
+        const randomRate = getRandomNumber(0.3, 2.5);
 
         player.playbackRate = randomRate;
         player.start(`+${randomDelay}`);
@@ -252,7 +280,11 @@ function setRotation(angle) {
     Tone.Listener.forwardZ.value = Math.cos(angle);
 }
 
-let snake;
+function preload() {
+    // Select and load an image at the start
+    // We only need to load one image here, as it's the first time
+    selectRandomImage();
+}
 
 function setup() {
     // Create the canvas and parent it to the designated container
@@ -266,61 +298,34 @@ function setup() {
     }
 
     angleMode(DEGREES);
-    buildSnake();
-    describe('A tiled plane of snake models');
+    describe('A tiled plane of randomly selected PNG images');
 
     // Add a direct touchstart listener to the canvas DOM element
-    // This can be more reliable for triggering actions on mobile
     if (p5CanvasElement) {
         p5CanvasElement.addEventListener('touchstart', (event) => {
-            event.preventDefault(); // Prevent default touch actions like scrolling/zooming
+            event.preventDefault(); // Prevent default touch actions
             handleCanvasPress();
-            console.log("Direct touchstart on canvas detected!");
         }, {
             passive: false
-        }); // Use passive: false to allow preventDefault
+        });
     }
 }
 
-function buildSnake() {
-    if (snake) {
-        freeGeometry(snake);
-    }
+function selectRandomImage() {
+    // Before loading a new image, set the flag to false
+    imageIsReady = false;
 
-    snake = buildGeometry(() => {
-        colorMode(HSB, 100);
-        fill(random(100), 50, 100);
-
-        push();
-        scale(1, 0.5, 1.4);
-        sphere(50);
-        pop();
-
-        for (let mirrorX of [-1, 1]) {
-            push();
-            scale(mirrorX, 1, 1);
-            fill('black');
-            translate(20, -20, 10);
-            sphere(10);
-            pop();
-        }
-        translate(0, 0, 50);
-
-        let numSegments = ceil(random(10, 30));
-        for (let segment = 0; segment < numSegments; segment++) {
-            rotateY(random(-60, 60));
-            translate(0, 0, 50);
-            push();
-            rotateX(90);
-            scale(1, 1, 0.5);
-            let radius = map(segment, numSegments - 5, numSegments, 50, 0, true);
-            cylinder(radius, 100);
-            pop();
-            translate(0, 0, 50);
-        }
+    const randomIndex = floor(random(pngImages.length));
+    const imageInfo = pngImages[randomIndex];
+    selectedImage = loadImage(imageInfo.url, () => {
+        console.log(`Image loaded from ${imageInfo.url}`);
+        selectedImageWidth = imageInfo.width;
+        selectedImageHeight = imageInfo.height;
+        // The image is now ready to be drawn
+        imageIsReady = true;
+    }, (error) => {
+        console.error(`Failed to load image from ${imageInfo.url}: ${error}`);
     });
-
-    snake.normalize();
 }
 
 function draw() {
@@ -328,7 +333,7 @@ function draw() {
     noStroke();
     scale(1.5);
     rotateX(-45);
-    rotateY(frameCount * rotationSpeed); // Use the global variable here
+    rotateY(frameCount * rotationSpeed);
     frameCount++;
 
     const listenerAngle = frameCount * 0.0025;
@@ -338,12 +343,29 @@ function draw() {
     specularMaterial('white');
     shininess(100);
 
-    for (let x = -4; x <= 4; x += 1) {
-        for (let z = -4; z <= 4; z += 1) {
-            push();
-            translate(x * 200, 0, z * 200);
-            model(snake);
-            pop();
+    // Only draw the image plane if the image is ready
+    if (imageIsReady) {
+        texture(selectedImage);
+        for (let x = -4; x <= 4; x += 1) {
+            for (let z = -4; z <= 4; z += 1) {
+                push();
+                // We're centering the tiles better by adjusting the translation
+                translate(x * (selectedImageWidth + 20), 0, z * (selectedImageHeight + 20));
+                plane(selectedImageWidth, selectedImageHeight);
+                pop();
+            }
+        }
+    } else {
+        // Fallback for when the image is not yet loaded
+        fill(200);
+        for (let x = -4; x <= 4; x += 1) {
+            for (let z = -4; z <= 4; z += 1) {
+                push();
+                // Use the initial placeholder size
+                translate(x * (150 + 20), 0, z * (150 + 20));
+                plane(150, 150);
+                pop();
+            }
         }
     }
 }
@@ -353,10 +375,7 @@ function draw() {
  * whether by a mouse click or a touch.
  */
 function handleCanvasPress() {
-    // No need for mouseX/Y boundary checks here, as the event listener
-    // is directly on the canvas element itself.
-    buildSnake();
-
+    selectRandomImage(); // Call this function to load a new random image
     const orbitRadius = 5;
 
     panners.forEach((panner, index) => {
@@ -367,27 +386,12 @@ function handleCanvasPress() {
         panner.positionY.value = getRandomNumber(yRange.min, yRange.max);
         panner.positionZ.value = orbitRadius * Math.cos(currentAngle);
     });
-
-    // The logic to start the audio is now only in the startAudioContextAndPlayback function
-    // so we can remove this check here.
 }
 
-/**
- * p5.js function that is called when the mouse is pressed.
- * This will still handle desktop clicks.
- */
 function mousePressed() {
     handleCanvasPress();
 }
 
-/**
- * p5.js function that is called when a touch event starts on the canvas.
- * While a direct DOM listener is added, this p5.js function is kept for completeness.
- * The `return false` is crucial here to prevent default browser behavior.
- */
 function touchStarted() {
-    // The direct DOM listener for 'touchstart' is now the primary handler for mobile.
-    // However, keeping this p5.js function and returning false is good practice
-    // to ensure p5.js itself doesn't trigger unwanted default touch behaviors.
     return false;
 }

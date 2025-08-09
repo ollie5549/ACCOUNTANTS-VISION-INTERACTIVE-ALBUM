@@ -1,3 +1,4 @@
+
 // --- TONE.JS AUDIO SETUP ---
 
 const limiter = new Tone.Limiter(-2).toDestination();
@@ -39,6 +40,11 @@ const crossFade = new Tone.CrossFade().connect(limiter);
 const chorus = new Tone.Chorus().start();
 const autoFilter = new Tone.AutoFilter().start();
 const reverb = new Tone.Reverb();
+reverb.wet.value = 0.4;
+
+// To reduce the reverb's volume, set the 'wet' value to a lower number.
+// The default is 1, a value like 0.2 will make it much more subtle.
+
 
 // --- Corrected Signal Flow ---
 // 1. Players send their signal to their individual volume channels
@@ -63,7 +69,7 @@ ElectronicPanner.connect(chorus);
 
 // 5. Effects are chained together
 chorus.connect(autoFilter);
-autoFilter.connect(reverb);
+autoFilter.connect(reverb, limiter);
 
 // 6. Reverb (wet signal) goes to crossFade.a
 reverb.connect(crossFade.a);
@@ -86,7 +92,7 @@ function getRandomNumber(min, max) {
  * @param {number} minRate - The minimum playback rate (e.g., 0.8 for half speed).
  * @param {number} maxRate - The maximum playback rate (e.g., 1.2 for double speed).
  */
-function randomizeAndStart(maxOffset = 4, minRate = 0.8, maxRate = 1.2) {
+function randomizeAndStart(maxOffset = 1, minRate = 0.6, maxRate = 1.1) {
     if (Tone.Transport.state === 'started') {
         console.log("Audio already playing. Stopping before randomizing.");
         Tone.Transport.stop();
@@ -117,8 +123,8 @@ function randomizeAndStart(maxOffset = 4, minRate = 0.8, maxRate = 1.2) {
 
 
 // --- Loading Screen & Start Button Management ---
-let audioLoadedAndReady = false; // Flag for when Tone.js buffers are loaded
-let audioContextStarted = false; // Flag for when Tone.context has resumed
+let audioLoadedAndReady = false;
+let audioContextStarted = false;
 
 function showButtons() {
     const loadingWatermark = document.getElementById('loadingWatermark');
@@ -128,9 +134,9 @@ function showButtons() {
 
     if (loadingWatermark && loadingText && startButton && randomizeButton) {
         loadingText.textContent = "Ready to Play!";
-        loadingWatermark.classList.add('loaded'); // Add 'loaded' class to hide spinner
-        startButton.style.display = 'block'; // Show the button
-        randomizeButton.style.display = 'block'; // Show the new button
+        loadingWatermark.classList.add('loaded');
+        startButton.style.display = 'block';
+        randomizeButton.style.display = 'block';
         console.log("Start and Randomize buttons shown, spinner hidden.");
     }
 }
@@ -261,10 +267,12 @@ let shapes = [];
 let draggedShape = null;
 let prevMouseX, prevMouseY;
 let prevTouchX, prevTouchY;
+let p5CanvasElement;
 
 function setup() {
     const canvas = createCanvas(700, 400, WEBGL);
     canvas.parent('canvas-container');
+    p5CanvasElement = canvas.elt; // Store the raw canvas DOM element
 
     angleMode(DEGREES);
     normalMaterial();
@@ -369,7 +377,6 @@ function draw() {
 
 function handleInteractionStart(inputX, inputY) {
     if (!audioContextStarted) {
-        console.warn("Audio context not started yet. Ignoring interaction on canvas.");
         return false;
     }
 
@@ -425,24 +432,16 @@ function handleInteractionDrag(currentX, currentY) {
         currentShape.rotY += deltaX * 0.5;
         currentShape.rotX -= deltaY * 0.5;
 
-        // --- NEW LOGIC: MAP SPHERE ROTATION TO PANNER 3D POSITIONS ---
         if (currentShape.name === 'sphere') {
             const rotX = currentShape.rotX % 360;
             const rotY = currentShape.rotY % 360;
 
-            // Map the rotation values to the panner's coordinate system
-            // The panner3D uses a coordinate system where -1 to 1 is a good range
-            // Y-rotation maps to X-position (horizontal)
             const mappedPannerX = map(rotY, -180, 180, -1, 1);
 
-            // X-rotation maps to Y-position (vertical)
             const mappedPannerY = map(rotX, -180, 180, -1, 1);
 
-            // The Z-position can be mapped to something else, like a combination of both rotations,
-            // or we can just make it static. Let's make it a combination for more depth.
             const mappedPannerZ = map((rotX + rotY) % 360, -360, 360, -1, 1);
 
-            // Apply the new position to all three panners
             AcousticPanner.positionX.value = mappedPannerX;
             AcousticPanner.positionY.value = mappedPannerY;
             AcousticPanner.positionZ.value = mappedPannerZ;
@@ -457,9 +456,7 @@ function handleInteractionDrag(currentX, currentY) {
 
             console.log(`Panner3D Position - X: ${mappedPannerX.toFixed(2)}, Y: ${mappedPannerY.toFixed(2)}, Z: ${mappedPannerZ.toFixed(2)}`);
         }
-        // --- END NEW LOGIC ---
 
-        // The rest of the effect controls remain the same
         if (currentShape.name === 'box') {
             const decayMin = 0.01,
                 decayMax = 60;
@@ -524,11 +521,8 @@ function handleInteractionDrag(currentX, currentY) {
             let mappedDepth = map(currentShape.rotY % 360, -180, 180, depthMin, depthMax);
             chorus.depth = constrain(mappedDepth, depthMin, depthMax);
         }
-        
+
         if (currentShape.name === 'sphere' && currentShape.name !== 'sphere') {
-            // This is a catch-all in case the above logic doesn't apply.
-            // Original dry/wet fade control on the sphere is moved.
-            // The new sphere logic now handles panning, not fading.
             const fadeMin = 0.,
                 fadeMax = 1.;
             let mappedFade = map(currentShape.rotY % 360, -180, 180, fadeMin, fadeMax);
@@ -562,23 +556,29 @@ function mouseReleased() {
 }
 
 function touchStarted() {
-    if (touches.length > 0) {
+    // NEW: Check if the touch event originated on the canvas itself
+    if (event.target === p5CanvasElement && touches.length > 0) {
         return handleInteractionStart(touches[0].x, touches[0].y);
     }
+    // If not on the canvas, return true to allow other elements to handle the event
     return true;
 }
 
 function touchMoved() {
-    if (touches.length > 0) {
+    // NEW: Check if the touch event originated on the canvas itself
+    if (event.target === p5CanvasElement && touches.length > 0) {
         return handleInteractionDrag(touches[0].x, touches[0].y);
     }
+    // If not on the canvas, return true
     return true;
 }
 
 function touchEnded() {
-    if (touches.length == 0) {
+    // NEW: Check if the touch event originated on the canvas itself
+    if (event.target === p5CanvasElement && touches.length == 0) {
         return handleInteractionEnd();
     }
+    // If not on the canvas, return true
     return true;
 }
 
