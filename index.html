@@ -5,60 +5,53 @@
         <title>Accountant's Vision Interactive Album</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" type="image/png" sizes="174x174" href="./favicon.png" />
-        <!--
-            We're using Tailwind CSS for a modern, responsive design.
-            It's loaded directly from a CDN for simplicity.
-        -->
         <script src="https://cdn.tailwindcss.com"></script>
-        <!--
-            Using a custom font from Google Fonts to improve typography.
-        -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet">
         <style>
             body {
                 font-family: 'Inter', sans-serif;
-                /* This line was removed to enable scrolling */
             }
             
-            /* The floating class now only sets the position and z-index,
-               the animation is handled by JavaScript */
             .floating {
                 position: fixed;
                 z-index: -10;
                 pointer-events: none;
-                transition: transform 0.0s linear; /* Use transition for smoother movement */
+                transition: transform 0.0s linear;
             }
 
-            /* Custom CSS class to make the icons significantly larger (20x) */
             .giant-icon {
                 font-size: 7rem;
                 line-height: 1;
             }
 
-            /* Custom CSS for the 3D text effect on the main title */
-            .main-title-3d {
-                text-shadow: 
-                    2px 2px 0px #ffffff,
-                    4px 4px 0px #b9e1ff,
-                    6px 6px 0px #82c8ff;
-            }
-
-            /* Custom CSS for the 3D text effect on the album titles */
             .card-title-3d {
                 text-shadow: 
-                    1px 1px 0px #e2e8f0,
-                    2px 2px 0px #cbd5e1;
+                    1px 1px 0px #334155,
+                    2px 2px 0px #1e293b;
+            }
+
+            /* --- New CSS for Wobble Animation --- */
+            @keyframes wobble {
+                0%, 100% { transform: rotate(0deg); }
+                25% { transform: rotate(-4.5deg); }
+                75% { transform: rotate(4.5deg); }
+            }
+
+            .wobble-letter {
+                display: inline-block;
+                animation: wobble 3s infinite;
+            }
+
+            /* --- New CSS for Word Spacing --- */
+            .word-space {
+                margin-right: 15px; 
             }
         </style>
     </head>
-    <!-- The body now has a more professional, clean background and text color -->
-    <body class="bg-slate-200 text-slate-800 antialiased p-4 sm:p-8 relative">
+    <body class="bg-slate-900 text-slate-200 antialiased p-4 sm:p-8 relative">
 
-        <!-- Floating, superimposed elements -->
-        <!-- These divs are styled to appear like floating icons in the background -->
-        <!-- The animation is now handled by the JavaScript below -->
         <div class="floating giant-icon opacity-60 hidden sm:block">📊</div>
         <div class="floating giant-icon opacity-60">📎</div>
         <div class="floating giant-icon opacity-60">☕</div>
@@ -68,76 +61,107 @@
         <div class="floating giant-icon opacity-50">🖋️</div>
         <div class="floating giant-icon opacity-40">📁</div>
         <div class="floating giant-icon opacity-50">💼</div>
-        <!-- Added more numbers and symbols for the bouncing effect -->
         <div class="floating giant-icon opacity-70 text-sky-600 hidden md:block">💰</div>
         <div class="floating giant-icon opacity-60 text-sky-700 hidden lg:block">€</div>
         <div class="floating giant-icon opacity-60 text-gray-500">¥</div>
         <div class="floating giant-icon opacity-50 text-gray-600 hidden sm:block">12%</div>
         <div class="floating giant-icon opacity-40 text-sky-500">0.00</div>
 
-        <!-- Main content container with max-w to center content on large screens -->
         <div class="max-w-4xl mx-auto z-10 relative">
-            <!-- Header Section -->
             <header class="text-center mb-10 mt-5">
-                <!-- Heading and subheading are styled to match a professional report -->
-                <h1 class="text-4xl font-bold text-sky-800 mb-2 main-title-3d">Accountant's Vision Interactive Album</h1>
-                <p class="text-lg text-slate-600 font-medium italic">Your financial data, visualized.</p>
+                <h1 class="text-4xl font-black mb-2">
+                    <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">A</span>
+                    <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">c</span>
+                    <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">c</span>
+                    <span class="wobble-letter" style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;">o</span>
+                    <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">u</span>
+                    <span class="wobble-letter" style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;">n</span>
+                    <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">t</span>
+                    <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">a</span>
+                    <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">n</span>
+                    <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">t</span>
+                    <span class="wobble-letter" style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;">'</span>
+                    <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">s</span>
+                      <br>
+                    <span style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;"> </span>
+                    
+                    <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">V</span>
+                    <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">i</span>
+                    <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">s</span>
+                    <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">i</span>
+                    <span class="wobble-letter" style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;">o</span>
+                    <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">n</span>
+                    <br>
+                    <span style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;"> </span>
+                    
+                    <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">I</span>
+                    <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">n</span>
+                    <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">t</span>
+                    <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">e</span>
+                    <span class="wobble-letter" style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;">r</span>
+                    <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">a</span>
+                    <span class="wobble-letter" style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;">c</span>
+                    <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">t</span>
+                    <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">i</span>
+                    <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">v</span>
+                    <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">e</span>
+                      <br>
+                    <span style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;"> </span>
+                    
+                    <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">A</span>
+                    <span class="wobble-letter" style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;">l</span>
+                    <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">b</span>
+                    <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">u</span>
+                    <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">m</span>
+                </h1>
+                <p class="text-lg text-slate-400 font-medium italic">Your financial data, visualized.</p>
             </header>
-
-            <!-- Album Navigation Section - The main content is now themed as "files" -->
             <main class="mb-10">
+                <div class="text-center mb-6">
+                    <div class="inline-block bg-slate-800 p-4 rounded-xl shadow-md border border-slate-700">
+                        <p class="font-semibold text-sm text-slate-300">📌 Important Memo: For best analysis, use headphones!</p>
+                    </div>
+                </div>
                 <nav>
-                    <!--
-                        A responsive grid for the album tracks.
-                        On small screens (sm), it's 2 columns.
-                        On medium screens (md), it's 3 columns.
-                    -->
                     <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                        <!-- Each list item is a card styled like a file folder or document -->
                         <li>
-                            <a href="1.Colours.html" class="block bg-white p-6 rounded-xl shadow-md border border-slate-300 hover:bg-sky-100 hover:border-sky-500 transition-all duration-300">
-                                <span class="block text-center text-xl font-bold text-sky-800 card-title-3d">📊 Colours</span>
+                            <a href="1.Colours.html" class="block bg-slate-800 p-6 rounded-xl shadow-md border border-slate-700 hover:bg-slate-700 hover:border-sky-500 transition-all duration-300">
+                                <span class="block text-center text-xl font-bold text-sky-300 card-title-3d">📊 Colours</span>
                             </a>
                         </li>
                         <li>
-                            <a href="2.DragonRide.html" class="block bg-white p-6 rounded-xl shadow-md border border-slate-300 hover:bg-sky-100 hover:border-sky-500 transition-all duration-300">
-                                <span class="block text-center text-xl font-bold text-sky-800 card-title-3d">📈 Dragon Ride</span>
+                            <a href="2.DragonRide.html" class="block bg-slate-800 p-6 rounded-xl shadow-md border border-slate-700 hover:bg-slate-700 hover:border-sky-500 transition-all duration-300">
+                                <span class="block text-center text-xl font-bold text-sky-300 card-title-3d">📈 Dragon Ride</span>
                             </a>
                         </li>
                         <li>
-                            <a href="3.Fossa.html" class="block bg-white p-6 rounded-xl shadow-md border border-slate-300 hover:bg-sky-100 hover:border-sky-500 transition-all duration-300">
-                                <span class="block text-center text-xl font-bold text-sky-800 card-title-3d">📁 Fossa</span>
+                            <a href="3.Fossa.html" class="block bg-slate-800 p-6 rounded-xl shadow-md border border-slate-700 hover:bg-slate-700 hover:border-sky-500 transition-all duration-300">
+                                <span class="block text-center text-xl font-bold text-sky-300 card-title-3d">📁 Fossa</span>
                             </a>
                         </li>
                         <li>
-                            <a href="4.Nowhere.html" class="block bg-white p-6 rounded-xl shadow-md border border-slate-300 hover:bg-sky-100 hover:border-sky-500 transition-all duration-300">
-                                <span class="block text-center text-xl font-bold text-sky-800 card-title-3d">📄 Nowhere</span>
+                            <a href="4.Nowhere.html" class="block bg-slate-800 p-6 rounded-xl shadow-md border border-slate-700 hover:bg-slate-700 hover:border-sky-500 transition-all duration-300">
+                                <span class="block text-center text-xl font-bold text-sky-300 card-title-3d">📄 Nowhere</span>
                             </a>
                         </li>
                         <li>
-                            <a href="5.TalkingBoats.html" class="block bg-white p-6 rounded-xl shadow-md border border-slate-300 hover:bg-sky-100 hover:border-sky-500 transition-all duration-300">
-                                <span class="block text-center text-xl font-bold text-sky-800 card-title-3d">💼 Talking Boats</span>
+                            <a href="5.TalkingBoats.html" class="block bg-slate-800 p-6 rounded-xl shadow-md border border-slate-700 hover:bg-slate-700 hover:border-sky-500 transition-all duration-300">
+                                <span class="block text-center text-xl font-bold text-sky-300 card-title-3d">💼 Talking Boats</span>
                             </a>
                         </li>
                         <li>
-                            <a href="6.ThreeBoats.html" class="block bg-white p-6 rounded-xl shadow-md border border-slate-300 hover:bg-sky-100 hover:border-sky-500 transition-all duration-300">
-                                <span class="block text-center text-xl font-bold text-sky-800 card-title-3d">🖋️ Ten Boats</span>
+                            <a href="6.ThreeBoats.html" class="block bg-slate-800 p-6 rounded-xl shadow-md border border-slate-700 hover:bg-slate-700 hover:border-sky-500 transition-all duration-300">
+                                <span class="block text-center text-xl font-bold text-sky-300 card-title-3d">🖋️ Ten Boats</span>
                             </a>
                         </li>
                     </ul>
                 </nav>
             </main>
 
-            <!-- Footer/Extra Information Section -->
             <footer class="mt-12 text-center text-slate-500">
-                <!-- The "headphones" section is now styled like an important memo -->
-                <div class="inline-block bg-white p-4 rounded-xl shadow-md mb-4 border border-slate-300">
-                    <p class="font-semibold text-sm text-slate-700">📌 Important Memo: For best analysis, use headphones!</p>
-                </div>
-                <!-- The GitHub link is styled as a more formal button -->
                 <div class="mt-4">
                     <a href="https://github.com/ollie5549/ACCOUNTANTS-VISION-INTERACTIVE-ALBUM" 
-                       class="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-sky-800 bg-sky-200 hover:bg-sky-300 transition-colors">
+                       class="inline-flex items-center px-4 py-2 border border-slate-700 text-sm font-medium rounded-md text-sky-300 bg-sky-900 hover:bg-sky-800 transition-colors">
                        <svg class="w-4 h-4 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 .333A9.685 9.685 0 0 0 10 19c-5.068 0-9.213-4.045-9.213-9C.787 4.345 4.932.333 10 .333ZM6.166 16.3a8.15 8.15 0 0 1-2.274-1.285c-1.39-1.233-2.195-2.827-2.316-4.524 0-.012-.008-.023-.016-.035C1.41 10.37 1.332 9.7 1.332 9c0-1.87.5-3.6 1.4-5.053.11-.174.22-.34.33-.504a9.697 9.697 0 0 0-.294-1.272A9.227 9.227 0 0 1 10 1.667c1.884 0 3.65.626 5.09 1.708-.094.4-.194.79-.3.1.13.1.25.2.38.3.15.1.29.2.44.3.49.38.96.8 1.4 1.25.12.1.23.2.35.3.49.52.92 1.13 1.3 1.78.07.12.13.24.2.36.27.5.47 1.0.65 1.54.04.1.06.2.06.32 0 .04-.008.08-.008.12-.132 1.696-1.127 3.29-2.516 4.523-.92.81-2.03 1.39-3.26 1.75l-.01.003-.02.006c-.02.006-.05.01-.07.016l-.05.013a9.23 9.23 0 0 1-1.745-.078l-.018-.003-.013-.002-1.02-.12a9.664 9.664 0 0 1-2.91 0c-.39.06-.78.1-1.18.13-.03.01-.06.01-.09.02l-.04.01a.985.985 0 0 1-.16.03l-.06.01ZM8.6 14.167a.3.3 0 0 1-.1.2c-.1.08-.32.06-.44-.06-.12-.12-.14-.3-.04-.42.1-.1.28-.12.4-.04.12.08.12.2.1.32Zm.46-2.58a.5.5 0 0 1-.22.1c-.13.06-.32.04-.42-.08-.1-.13-.1-.3-.02-.4.08-.12.28-.14.4-.08.1.04.2.14.24.26a.54.54 0 0 1 0 .2Zm.82-2.5a.6.6 0 0 1-.2.2c-.1.08-.34.02-.42-.08-.1-.12-.1-.3.02-.4a.5.5 0 0 1 .42-.02c.1.08.18.2.18.3Zm.46-2.16a.4.4 0 0 1-.12.14c-.1.08-.3.02-.4-.08-.12-.1-.12-.3-.02-.4.1-.12.3-.12.4-.02.1.08.14.2.14.36Zm.34-1.92c-.1.14-.3.12-.42.02-.1-.12-.12-.3-.02-.4.1-.1.28-.1.4.02.1.1.1.28.04.38ZM11.4 14.167a.3.3 0 0 1-.1.2c-.1.08-.32.06-.44-.06-.12-.12-.14-.3-.04-.42.1-.1.28-.12.4-.04.12.08.12.2.1.32Zm.46-2.58a.5.5 0 0 1-.22.1c-.13.06-.32.04-.42-.08-.1-.13-.1-.3-.02-.4.08-.12.28-.14.4-.08.1.04.2.14.24.26a.54.54 0 0 1 0 .2Zm.82-2.5a.6.6 0 0 1-.2.2c-.1.08-.34.02-.42-.08-.1-.12-.1-.3.02-.4a.5.5 0 0 1 .42-.02c.1.08.18.2.18.3Zm.46-2.16a.4.4 0 0 1-.12.14c-.1.08-.3.02-.4-.08-.12-.1-.12-.3-.02-.4.1-.12.3-.12.4-.02.1.08.14.2.14.36Zm.34-1.92c-.1.14-.3.12-.42.02-.1-.12-.12-.3-.02-.4.1-.1.28-.1.4.02.1.1.1.28.04.38Z" clip-rule="evenodd"/>
                         </svg>
@@ -148,90 +172,91 @@
         </div>
 
         <script>
-            // Get all elements with the 'floating' class
-            const floatingElements = document.querySelectorAll('.floating');
-            // Get the width and height of the viewport
-            let vw = window.innerWidth;
-            let vh = window.innerHeight;
+// Get all elements with the 'floating' class
+const floatingElements = document.querySelectorAll('.floating');
 
-            // An array to store the state (position, velocity) of each element
-            const elementStates = [];
+// An array to store the state (position, velocity) of each element
+const elementStates = [];
 
-            // Helper function to get a random number within a range
-            function getRandomNumber(min, max) {
-                return Math.random() * (max - min) + min;
-            }
+// Helper function to get a random number within a range
+function getRandomNumber(min, max) {
+    return Math.random() * (max - min) + min;
+}
 
-            // Function to initialize the state of each floating element
-            function initializeElements() {
-                // Clear any existing states
-                elementStates.length = 0;
+// Function to initialize the state of each floating element
+function initializeElements() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    
+    // Clear any existing states
+    elementStates.length = 0;
 
-                floatingElements.forEach(element => {
-                    const elementRect = element.getBoundingClientRect();
-                    const elementWidth = elementRect.width;
-                    const elementHeight = elementRect.height;
+    floatingElements.forEach(element => {
+        const elementRect = element.getBoundingClientRect();
+        const elementWidth = elementRect.width;
+        const elementHeight = elementRect.height;
 
-                    // Random starting position within the viewport
-                    const startX = getRandomNumber(0, vw - elementWidth);
-                    const startY = getRandomNumber(0, vh - elementHeight);
-                    
-                    // Random velocity, ensuring it's not too slow
-                    const velX = getRandomNumber(0.25, 0.5) * (Math.random() > 0.5 ? 1 : -1);
-                    const velY = getRandomNumber(0.25, 0.5) * (Math.random() > 0.5 ? 1 : -1);
-                    
-                    // Store the state
-                    elementStates.push({
-                        element,
-                        x: startX,
-                        y: startY,
-                        vx: velX,
-                        vy: velY
-                    });
+        // Random starting position within the viewport
+        const startX = getRandomNumber(0, vw - elementWidth);
+        const startY = getRandomNumber(0, vh - elementHeight);
+        
+        // Random velocity, ensuring it's not too slow
+        const velX = getRandomNumber(0.25, 0.3) * (Math.random() > 0.5 ? 1 : -1);
+        const velY = getRandomNumber(0.25, 0.3) * (Math.random() > 0.5 ? 1 : -1);
+        
+        // Store the state
+        elementStates.push({
+            element,
+            x: startX,
+            y: startY,
+            vx: velX,
+            vy: velY
+        });
 
-                    // Set the initial position
-                    element.style.transform = `translate(${startX}px, ${startY}px)`;
-                });
-            }
+        // Set the initial position
+        element.style.transform = `translate(${startX}px, ${startY}px)`;
+    });
+}
 
-            // The main animation loop
-            function animate() {
-                // Update the position of each element
-                elementStates.forEach(state => {
-                    state.x += state.vx;
-                    state.y += state.vy;
+// The main animation loop
+function animate() {
+    // FIX: Get the current viewport dimensions at the start of each frame
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    
+    // Update the position of each element
+    elementStates.forEach(state => {
+        state.x += state.vx;
+        state.y += state.vy;
 
-                    // Collision detection and velocity reversal
-                    const elementWidth = state.element.offsetWidth;
-                    const elementHeight = state.element.offsetHeight;
+        // Collision detection and velocity reversal
+        const elementWidth = state.element.offsetWidth;
+        const elementHeight = state.element.offsetHeight;
 
-                    if (state.x + elementWidth > vw || state.x < 0) {
-                        state.vx *= -1; // Reverse horizontal velocity
-                    }
-                    if (state.y + elementHeight > vh || state.y < 0) {
-                        state.vy *= -1; // Reverse vertical velocity
-                    }
-                    
-                    // Apply the new position
-                    state.element.style.transform = `translate(${state.x}px, ${state.y}px)`;
-                });
-                
-                // Request the next animation frame to continue the loop
-                requestAnimationFrame(animate);
-            }
+        // FIX: Use the updated vw and vh for collision detection
+        if (state.x + elementWidth > vw || state.x < 0) {
+            state.vx *= -1; // Reverse horizontal velocity
+        }
+        if (state.y + elementHeight > vh || state.y < 0) {
+            state.vy *= -1; // Reverse vertical velocity
+        }
+        
+        // Apply the new position
+        state.element.style.transform = `translate(${state.x}px, ${state.y}px)`;
+    });
+    
+    // Request the next animation frame to continue the loop
+    requestAnimationFrame(animate);
+}
 
-            // Re-initialize the animation when the window is resized
-            window.addEventListener('resize', () => {
-                vw = window.innerWidth;
-                vh = window.innerHeight;
-                initializeElements();
-            });
+// Re-initialize the animation when the window is resized
+// This event listener has been removed to prevent the "jumping" on mobile scroll.
 
-            // Start the animation when the window loads
-            window.onload = function() {
-                initializeElements();
-                animate();
-            };
+// Start the animation when the window loads
+window.onload = function() {
+    initializeElements();
+    animate();
+};
         </script>
     </body>
 </html>

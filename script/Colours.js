@@ -343,7 +343,7 @@ function randomizeShapePositions() {
 }
 
 function draw() {
-    background(250);
+    background(40);
 
     function applyShapeRotation(shapeIndex) {
         let s = shapes[shapeIndex];

@@ -93,23 +93,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- p5.js Sketch: Handles visual drawing and mouse/touch interactions ---
 
-// Declare a variable to hold the dragon image
-let images = []; // Use an array to store multiple images
+let images = [];
+let landscapeImage;
 let currentImageIndex = 0;
-let fadeAlpha = 255;
+let fadeAlpha = 0;
 let nextImageIndex = 1;
-const fadeSpeed = 3; // Adjust this value to control fade speed
+const fadeSpeed = 3;
+const stayDuration = 5 * 60;
+let timer = 0;
 
+// Dragon image size restored to 100%
 let radius = 24;
 let edge = 100;
 let inner = edge + radius;
 
-// New variables for the floating animation
-const floatSpeed = 0.05; // How fast the image floats
-const floatMagnitude = 10; // How high and low the image floats (in pixels)
+const floatSpeed = 0.05;
+const floatMagnitude = 10;
+
+// Background scrolling and scaling variables
+let bgX = 0;
+const bgScrollSpeed = 0.3;
+// Background image size restored to 100%
+const bgScale = 0.4;
 
 function preload() {
-    // Load all images into the array
+    // Load the wide landscape image
+    landscapeImage = loadImage('./assets/dragon_background_wide.png');
+
+    // Load all dragon images into the array
     images.push(loadImage('./assets/dragon1.png'));
     images.push(loadImage('./assets/dragon2.png'));
     images.push(loadImage('./assets/dragon3.png'));
@@ -134,69 +145,98 @@ function touchEnded() {
 }
 
 function draw() {
-    background(230);
-    fill(237, 34, 93);
-    rect(edge, edge, width - edge, height - edge);
+    // FIX: Clear the canvas with a solid color before drawing anything else
+    background(40);
 
-    // Calculate image coordinates constrained to rectangle
+    // --- Draw the scrolling background ---
+    let scaledWidth = landscapeImage.width * bgScale;
+    let scaledHeight = landscapeImage.height * bgScale;
+    
+    bgX -= bgScrollSpeed;
+    if (bgX <= -scaledWidth) {
+        bgX = 0;
+    }
+
+    image(landscapeImage, bgX, height / 2, scaledWidth, scaledHeight);
+    image(landscapeImage, bgX + scaledWidth, height / 2, scaledWidth, scaledHeight);
+
+    // FIX: Remove the fill and rect call here, as it's no longer needed
+    // The scrolling background now fills the entire canvas
+    // fill(237, 34, 93);
+    // rect(edge, edge, width - edge, height - edge);
+
+    // --- Draw the dragon based on mouse position ---
     let imageX = constrain(mouseX, inner, width - inner);
     let imageY = constrain(mouseY, inner, height - inner);
-
-    // Add the floating offset to the image's Y position
     let floatOffset = sin(frameCount * floatSpeed) * floatMagnitude;
     let finalImageY = imageY + floatOffset;
 
-    // Draw the images and apply effects
     if (images.length > 0) {
-        // Draw the image that is fading out
-        push();
-        tint(255, 255 - fadeAlpha);
-        if (imageX > width / 2) {
-            translate(imageX, finalImageY);
-            scale(-1, 1);
-            image(images[currentImageIndex], 0, 0, radius * 18, radius * 18);
-        } else {
-            image(images[currentImageIndex], imageX, finalImageY, radius * 18, radius * 18);
-        }
-        pop();
+        timer++;
         
-        // Draw the image that is fading in
-        push();
-        tint(255, fadeAlpha);
-        if (imageX > width / 2) {
-            translate(imageX, finalImageY);
-            scale(-1, 1);
-            image(images[nextImageIndex], 0, 0, radius * 18, radius * 18);
-        } else {
-            image(images[nextImageIndex], imageX, finalImageY, radius * 18, radius * 18);
-        }
-        pop();
-
-        // Update the alpha for fading
-        if (fadeAlpha < 255) {
+        // --- STAY PHASE ---
+        if (timer < stayDuration) {
+            push();
+            tint(255, 255);
+            if (imageX > width / 2) {
+                translate(imageX, finalImageY);
+                scale(-1, 1);
+                image(images[currentImageIndex], 0, 0, radius * 18, radius * 18);
+            } else {
+                image(images[currentImageIndex], imageX, finalImageY, radius * 18, radius * 18);
+            }
+            pop();
+        } 
+        // --- FADE PHASE ---
+        else {
+            push();
+            tint(255, 255 - fadeAlpha);
+            if (imageX > width / 2) {
+                translate(imageX, finalImageY);
+                scale(-1, 1);
+                image(images[currentImageIndex], 0, 0, radius * 18, radius * 18);
+            } else {
+                image(images[currentImageIndex], imageX, finalImageY, radius * 18, radius * 18);
+            }
+            pop();
+            
+            push();
+            tint(255, fadeAlpha);
+            if (imageX > width / 2) {
+                translate(imageX, finalImageY);
+                scale(-1, 1);
+                image(images[nextImageIndex], 0, 0, radius * 18, radius * 18);
+            } else {
+                image(images[nextImageIndex], imageX, finalImageY, radius * 18, radius * 18);
+            }
+            pop();
+            
             fadeAlpha += fadeSpeed;
-        } else {
-            // Once the fade is complete, switch to the next image
-            currentImageIndex = nextImageIndex;
-            nextImageIndex = (currentImageIndex + 1) % images.length;
-            fadeAlpha = 0;
+
+            if (fadeAlpha >= 255) {
+                currentImageIndex = nextImageIndex;
+                nextImageIndex = (currentImageIndex + 1) % images.length;
+                fadeAlpha = 0;
+                timer = 0;
+            }
         }
     }
     
-    // Reset tint for the rest of the sketch
     noTint();
 
     // Only update audio parameters if the audio context has started
     if (audioContextStarted) {
         const minVol = -40;
         const maxVol = 0;
-        // Map the new floating Y position to the volume of the ground and air players
+
         let groundVolume = map(finalImageY, inner, height - inner, minVol, maxVol);
         GroundPlayer.volume.value = groundVolume;
         KitPlayer.volume.value = groundVolume;
+
         let airVolume = map(finalImageY, inner, height - inner, maxVol, minVol);
         AirPlayer.volume.value = airVolume;
         ambientPlayer.volume.value = airVolume;
+
         const minDecay = 0.5;
         const maxDecay = 10;
         let reverbDecay = map(imageX, inner, width - inner, minDecay, maxDecay);

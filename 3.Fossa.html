@@ -47,27 +47,44 @@
                 margin-bottom: 20px;
             }
 
-            /* --- Home Button Styles --- */
+            /* --- New CSS for the home button to accommodate the new styling --- */
             .home-button {
-                /* Increased padding and font size for a larger, more tappable area on mobile */
-                padding: 1.2rem 2.5rem; 
-                font-size: 1.2em;
+                padding: 12px 24px;
+                font-size: 1em;
                 font-weight: bold;
-                color: white;
-                background-color: #007bff;
-                border: none;
+                background-color: #111; /* Dark background to make the letters stand out */
+                border: 2px solid #fff; /* A white border to frame the button */
                 border-radius: 8px;
                 cursor: pointer;
-                text-decoration: none; /* Removes the underline from the link */
-                transition: background-color 0.3s ease, transform 0.2s ease;
+                text-decoration: none;
+                transition: transform 0.2s ease;
                 display: inline-block;
                 margin: 15px 0;
-                min-width: 180px; /* Ensure a minimum touch target size */
-                text-align: center; /* Center the text for better appearance */
             }
+
             .home-button:hover {
-                background-color: #0056b3;
                 transform: translateY(-2px);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            }
+
+            .home-button-text {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                line-height: 1.2;
+            }
+
+            /* --- Wobble Animation for letters --- */
+            @keyframes wobble {
+                0%, 100% { transform: rotate(0deg); }
+                25% { transform: rotate(-1.5deg); }
+                75% { transform: rotate(1.5deg); }
+            }
+
+            .wobble-letter {
+                display: inline-block;
+                animation: wobble 2s infinite;
             }
 
             /* Main content area for layout */
@@ -210,7 +227,55 @@
         </div>
         
         <header style="text-align: center;">
-            <a href="index.html" class="home-button">Go to Homepage</a>
+            <a href="index.html" class="home-button">
+                <span class="home-button-text">
+                    <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">A</span>
+                    <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">c</span>
+                    <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">c</span>
+                    <span class="wobble-letter" style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;">o</span>
+                    <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">u</span>
+                    <span class="wobble-letter" style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;">n</span>
+                    <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">t</span>
+                    <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">a</span>
+                    <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">n</span>
+                    <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">t</span>
+                    <span class="wobble-letter" style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;">'</span>
+                    <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">s</span>
+                    
+                    <span style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;"> </span>
+                    
+                    <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">V</span>
+                    <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">i</span>
+                    <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">s</span>
+                    <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">i</span>
+                    <span class="wobble-letter" style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;">o</span>
+                    <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">n</span>
+                    
+                    <br>
+                    
+                    <span style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;"> </span>
+                    
+                    <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">I</span>
+                    <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">n</span>
+                    <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">t</span>
+                    <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">e</span>
+                    <span class="wobble-letter" style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;">r</span>
+                    <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">a</span>
+                    <span class="wobble-letter" style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;">c</span>
+                    <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">t</span>
+                    <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">i</span>
+                    <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">v</span>
+                    <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">e</span>
+                    
+                    <span style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;"> </span>
+                    
+                    <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">A</span>
+                    <span class="wobble-letter" style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;">l</span>
+                    <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">b</span>
+                    <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">u</span>
+                    <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">m</span>
+                </span>
+            </a>
             <h1>Fossa</h1>
         </header>
 

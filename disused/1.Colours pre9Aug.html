@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Colours</title>
+
+    <meta
+        name="viewport"
+        content="user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width,height=device-height"
+    />
+    <link
+        rel="icon"
+        type="image/png"
+        sizes="174x174"
+        href="./favicon.png"
+    />
+
+    <script src="./js/webcomponents-bundle.js"></script>
+    <script src="./js/Tone.js"></script>
+    <script src="./js/p5.js"></script>
+    <script src="./js/tone-ui.js"></script>
+    <script src="./js/components.js"></script>
+
+    <link href="./css/AVfonts.css" rel="stylesheet" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            touch-action: manipulation;
+            padding: 0;
+            background-color: black;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 10vh;
+            align-items: center;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        h1 {
+            color: #f4f4f4;
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        #main-content {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            flex-grow: 1;
+            padding: 10px 0;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .p5-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 2;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        canvas {
+            display: block;
+            border: 1px solid #ccc;
+            touch-action: manipulation;
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Floating button styles */
+        #randomizeButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100; /* Ensure it's on top of other content */
+            padding: 15px 25px;
+            font-size: 1.2em;
+            background-color: #dc3545; /* Red for "break it" */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        #randomizeButton:hover {
+            background-color: #c82333;
+            transform: scale(1.05); /* Slightly enlarge on hover */
+        }
+
+        /* --- Project Container Styling --- */
+        .project-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto 40px auto;
+            padding: 20px;
+            background-color: #111;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            line-height: 1.6;
+            box-sizing: border-box;
+        }
+
+        .project-container ul {
+            list-style: disc;
+            margin-left: 20px;
+            padding: 0;
+            margin-bottom: 10px;
+        }
+
+        .project-container li {
+            margin-bottom: 5px;
+        }
+
+        .project-container a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .project-container a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- Loading Watermark Styles --- */
+        #loadingWatermark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #333;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: sans-serif;
+            font-size: 2em;
+            z-index: 1000;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #loadingWatermark .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-top: 20px;
+            display: block;
+        }
+
+        #loadingWatermark.loaded .spinner {
+            display: none;
+        }
+
+        #startButton {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: none;
+        }
+
+        #startButton:hover {
+            background-color: #0056b3;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- Dropdown Menu Styles --- */
+        .navbar {
+            width: 100%;
+            background-color: #333;
+            padding: 10px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropbtn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            font-size: 1em;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            touch-action: manipulation;
+        }
+
+        .dropbtn:hover, .dropbtn:focus {
+            background-color: #0056b3;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+            transition: background-color 0.2s;
+            touch-action: manipulation;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #ddd;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        /* Responsive Adjustments for Smaller Screens */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+                margin-top: 10px;
+            }
+
+            #main-content {
+                flex-direction: column;
+                padding: 5px;
+            }
+
+            .p5-container {
+                padding: 5px;
+                margin-bottom: 10px;
+            }
+
+            .project-container {
+                width: 95%;
+                padding: 15px;
+                margin: 15px auto 30px auto;
+            }
+
+            .navbar {
+                padding: 5px 0;
+                margin-bottom: 10px;
+            }
+
+            .dropbtn {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+
+            .dropdown-content {
+                min-width: 140px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loadingWatermark">
+        <p id="loadingText">Loading Audio...</p>
+        <div class="spinner"></div>
+        <button id="startButton">Start Audio</button>
+    </div>
+
+    <div class="navbar">
+        <div class="dropdown">
+            <button class="dropbtn" id="albumDropdownBtn">The Accountant's Vision</button>
+            <div class="dropdown-content" id="albumDropdownContent">
+                <a href="1.Colours.html">Colours</a>
+                <a href="2.DragonRide.html">Dragon Ride</a>
+                <a href="3.Fossa.html">Fossa</a>
+                <a href="4.Nowhere.html">Nowhere</a>
+                <a href="5.TalkingBoats.html">Talking Boats</a>
+                <a href="6.ThreeBoats.html">Three Boats</a>
+            </div>
+        </div>
+    </div>
+
+    <h1>Colours</h1>
+    
+    <div id="main-content">
+        <div class="p5-container" id="canvas-container"></div>
+    </div>
+
+    <button id="randomizeButton" style="display: none;">break it</button>
+
+    <script src="./script/Colours.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropbtn = document.getElementById('albumDropdownBtn');
+            const dropdownContent = document.getElementById('albumDropdownContent');
+
+            if (dropbtn && dropdownContent) {
+                const dropdownLinks = dropdownContent.querySelectorAll('a');
+                const toggleDropdown = function(event) {
+                    event.stopPropagation();
+                    dropdownContent.classList.toggle('show');
+                };
+
+                dropbtn.addEventListener('click', toggleDropdown);
+                dropbtn.addEventListener('touchend', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    toggleDropdown(event);
+                }, { passive: false });
+
+                dropdownLinks.forEach(link => {
+                    link.addEventListener('touchend', function(event) {
+                        event.stopPropagation();
+                        setTimeout(() => {
+                             window.location.href = this.href;
+                        }, 50);
+                        dropdownContent.classList.remove('show');
+                    }, { passive: false });
+
+                    link.addEventListener('click', function(event) {
+                        console.log("Link click detected for: " + this.href);
+                        event.stopPropagation();
+                    });
+                });
+
+                window.addEventListener('click', function(event) {
+                    if (!event.target.closest('.dropdown') && dropdownContent.classList.contains('show')) {
+                        dropdownContent.classList.remove('show');
+                    }
+                });
+                window.addEventListener('touchend', function(event) {
+                    if (!event.target.closest('.dropdown') && dropdownContent.classList.contains('show')) {
+                        dropdownContent.classList.remove('show');
+                    }
+                }, { passive: false });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>Ten Boats</title>
+        <title>Ten Boats </title>
 
         <meta
             name="viewport"
@@ -14,14 +14,12 @@
             sizes="174x174"
             href="./favicon.png"
         />
-        <!-- Custom font from Google Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 
 
         <script src="./js/webcomponents-bundle.js"></script>
-        <!-- The Tone.js library is used for web audio -->
         <script src="./js/Tone.js"></script>
         <script src="./js/p5.js"></script>
         <script src="./js/tone-ui.js"></script>
@@ -43,7 +41,7 @@
                 /* Use a flex container to center all content horizontally */
                 display: flex;
                 flex-direction: column;
-                min-height: 100vh;
+                min-height: 10vh;
                 align-items: center;
                 overflow-x: hidden;
                 overflow-y: auto;
@@ -55,32 +53,61 @@
                 text-align: center;
                 margin-top: 20px;
                 margin-bottom: 20px;
+                
             }
-            
-            /* --- Home Button Styles --- */
+
+            /* Custom CSS for the 3D text effect on the main title */
+            .main-title-3d {
+                text-shadow: 
+                    2px 2px 0px #00ff15,
+                    4px 4px 0px #5100ff,
+                    6px 6px 0px #ff0000;
+                color: #f4f4f4; /* Ensures the text color is set explicitly */
+            }
+
+            /* New CSS for the home button to accommodate the new styling */
+            .home-button {
+                padding: 12px 24px;
+                font-size: 1em;
+                font-weight: bold;
+                background-color: #111; /* Dark background to make the letters stand out */
+                border: 2px solid #fff; /* A white border to frame the button */
+                border-radius: 8px;
+                cursor: pointer;
+                text-decoration: none;
+                transition: transform 0.2s ease;
+                display: inline-block;
+                z-index: 10;
+            }
+            .home-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            }
             .home-button-container {
                 text-align: center;
                 margin-top: 15px;
                 margin-bottom: 15px;
             }
-            .home-button {
-                padding: 12px 24px;
-                font-size: 1em;
-                font-weight: bold;
-                color: white;
-                background-color: #007bff;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                text-decoration: none;
-                transition: background-color 0.3s ease, transform 0.2s ease;
-                display: inline-block;
-                /* Add a high z-index to ensure it's always clickable */
-                z-index: 10;
+
+            /* The flex container for the letters inside the button */
+            .home-button-text {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                line-height: 1.2;
             }
-            .home-button:hover {
-                background-color: #0056b3;
-                transform: translateY(-2px);
+
+            /* --- Wobble Animation for letters --- */
+            @keyframes wobble {
+                0%, 100% { transform: rotate(0deg); }
+                25% { transform: rotate(-1.5deg); }
+                75% { transform: rotate(1.5deg); }
+            }
+
+            .wobble-letter {
+                display: inline-block;
+                animation: wobble 2s infinite;
             }
 
             /* Main content area for layout */
@@ -248,13 +275,8 @@
                 .memo-box {
                     margin-bottom: 5px;
                 }
-                /* The floating class only sets the position and z-index, the animation is handled by JavaScript */
-  .floating {
-            position: fixed;
-            z-index: -10;
-            pointer-events: none;
-            transition: transform 0.0s linear; /* Use transition for smoother movement */
-        }
+
+
 
             }
         </style>
@@ -272,122 +294,64 @@
         
         <header style="text-align: center;">
             <div class="home-button-container">
-                <a href="index.html" class="home-button">Accountant's Vision Interactive Album</a>
+                <a href="index.html" class="home-button">
+                    <span class="home-button-text">
+                        <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">A</span>
+                        <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">c</span>
+                        <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">c</span>
+                        <span class="wobble-letter" style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;">o</span>
+                        <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">u</span>
+                        <span class="wobble-letter" style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;">n</span>
+                        <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">t</span>
+                        <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">a</span>
+                        <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">n</span>
+                        <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">t</span>
+                        <span class="wobble-letter" style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;">'</span>
+                        <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">s</span>
+                        
+                        <span style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;"> </span>
+                        
+                        <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">V</span>
+                        <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">i</span>
+                        <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">s</span>
+                        <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">i</span>
+                        <span class="wobble-letter" style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;">o</span>
+                        <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">n</span>
+                        
+                        <br>
+                        
+                        <span style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;"> </span>
+                        
+                        <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">I</span>
+                        <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">n</span>
+                        <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">t</span>
+                        <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">e</span>
+                        <span class="wobble-letter" style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;">r</span>
+                        <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">a</span>
+                        <span class="wobble-letter" style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;">c</span>
+                        <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">t</span>
+                        <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">i</span>
+                        <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">v</span>
+                        <span class="wobble-letter" style="color: #FFFF00; text-shadow: 2px 2px 0 #B8B800;">e</span>
+                        
+                        <span style="color: #00FF00; text-shadow: 2px 2px 0 #008B00;"> </span>
+                        
+                        <span class="wobble-letter" style="color: #0000FF; text-shadow: 2px 2px 0 #00008B;">A</span>
+                        <span class="wobble-letter" style="color: #4B0082; text-shadow: 2px 2px 0 #2E004F;">l</span>
+                        <span class="wobble-letter" style="color: #8A2BE2; text-shadow: 2px 2px 0 #5C1E96;">b</span>
+                        <span class="wobble-letter" style="color: #FF0000; text-shadow: 2px 2px 0 #8B0000;">u</span>
+                        <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">m</span>
+                    </span>
+                </a>
             </div>
-            <h1>Ten Boats</h1>
+            <h1 class="main-title-3d">Ten Boats</h1>    
         </header>
 
         <main id="main-content">
             <div class="p5-container" id="canvas-container"></div>
-            <!-- Floating, superimposed elements -->
-<div class="floating opacity-60 text-6xl hidden sm:block">📊</div>
-<div class="floating opacity-60 text-7xl">📎</div>
-<div class="floating opacity-60 text-7xl">☕</div>
-<div class="floating opacity-60 text-6xl hidden sm:block">📋</div>
-<div class="floating opacity-60 text-7xl">101</div>
-<div class="floating opacity-50 text-5xl hidden md:block">📈</div>
-<div class="floating opacity-50 text-5xl">🖋️</div>
-<div class="floating opacity-40 text-6xl">📁</div>
-<div class="floating opacity-50 text-6xl">💼</div>
-<div class="floating opacity-70 text-8xl text-sky-600 hidden md:block">💰</div>
-<div class="floating opacity-60 text-5xl text-sky-700 hidden lg:block">€</div>
-<div class="floating opacity-60 text-4xl text-gray-500">¥</div>
-<div class="floating opacity-50 text-6xl text-gray-600 hidden sm:block">12%</div>
-<div class="floating opacity-40 text-5xl text-sky-500">0.00</div>
         </main>
         
         
         <script src="./script/ThreeBoats.js"></script>
-        <script>
-    // Get all elements with the 'floating' class
-    const floatingElements = document.querySelectorAll('.floating');
-    // Get the width and height of the viewport
-    let vw = window.innerWidth;
-    let vh = window.innerHeight;
-
-    // An array to store the state (position, velocity) of each element
-    const elementStates = [];
-
-    // Helper function to get a random number within a range
-    function getRandomNumber(min, max) {
-        return Math.random() * (max - min) + min;
-    }
-
-    // Function to initialize the state of each floating element
-    function initializeElements() {
-        // Clear any existing states
-        elementStates.length = 0;
-
-        floatingElements.forEach(element => {
-            const elementRect = element.getBoundingClientRect();
-            const elementWidth = elementRect.width;
-            const elementHeight = elementRect.height;
-
-            // Random starting position within the viewport
-            const startX = getRandomNumber(0, vw - elementWidth);
-            const startY = getRandomNumber(0, vh - elementHeight);
-            
-            // Random velocity, ensuring it's not too slow
-            const velX = getRandomNumber(1, 2) * (Math.random() > 0.5 ? 1 : -1);
-            const velY = getRandomNumber(1, 2) * (Math.random() > 0.5 ? 1 : -1);
-            
-            // Store the state
-            elementStates.push({
-                element,
-                x: startX,
-                y: startY,
-                vx: velX,
-                vy: velY
-            });
-
-            // Set the initial position
-            element.style.transform = `translate(${startX}px, ${startY}px)`;
-        });
-    }
-
-    // The main animation loop
-    function animate() {
-        // Update the position of each element
-        elementStates.forEach(state => {
-            state.x += state.vx;
-            state.y += state.vy;
-
-            // Collision detection and velocity reversal
-            const elementWidth = state.element.offsetWidth;
-            const elementHeight = state.element.offsetHeight;
-
-            if (state.x + elementWidth > vw || state.x < 0) {
-                state.vx *= -1; // Reverse horizontal velocity
-            }
-            if (state.y + elementHeight > vh || state.y < 0) {
-                state.vy *= -1; // Reverse vertical velocity
-            }
-            
-            // Apply the new position
-            state.element.style.transform = `translate(${state.x}px, ${state.y}px)`;
-        });
-        
-        // Request the next animation frame to continue the loop
-        requestAnimationFrame(animate);
-    }
-
-    // Re-initialize the animation when the window is resized
-    window.addEventListener('resize', () => {
-        vw = window.innerWidth;
-        vh = window.innerHeight;
-        initializeElements();
-    });
-
-    // Start the animation when the window loads
-    window.onload = function() {
-        initializeElements();
-        animate();
-    };
-    
-</script>
     </body>
 </html>
-
-
-
-
