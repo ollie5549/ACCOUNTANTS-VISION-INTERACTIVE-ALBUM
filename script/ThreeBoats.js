@@ -40,11 +40,15 @@ function preload() {
 // =================================================================
 // Tone.js Audio Setup
 // =================================================================
-const limiter = new Tone.Limiter(-4).toDestination();
+const limiter = new Tone.Limiter(-2).toDestination();
+
+const gain = new Tone.Gain(0.5).connect(limiter); // A gain of 2 is equivalent to +6 dB
+
+
 const reverb = new Tone.Reverb({
     decay: 3,
     wet: 0.2
-}).connect(limiter);
+}).connect(gain);
 
 const comp = new Tone.Compressor({
     threshold: -24,

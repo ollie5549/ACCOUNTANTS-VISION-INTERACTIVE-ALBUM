@@ -2,6 +2,7 @@
 // --- TONE.JS AUDIO SETUP ---
 
 const limiter = new Tone.Limiter(-2).toDestination();
+const gain = new Tone.Gain(0.8).connect(limiter); // A gain of 2 is equivalent to +6 dB
 
 // Use Tone.Player with URL directly.
 const AcousticPlayer = new Tone.Player({
@@ -69,7 +70,7 @@ ElectronicPanner.connect(chorus);
 
 // 5. Effects are chained together
 chorus.connect(autoFilter);
-autoFilter.connect(reverb, limiter);
+autoFilter.connect(reverb, gain);
 
 // 6. Reverb (wet signal) goes to crossFade.a
 reverb.connect(crossFade.a);

@@ -26,19 +26,16 @@ let hasBroken = false;
 // =================================================================
 // Tone.js Audio Setup
 // =================================================================
-const limiter = new Tone.Limiter(-2).toDestination();
+
+const limiter = new Tone.Limiter(-3).toDestination();
+const gain = new Tone.Gain(1).connect(limiter); // A gain of 2 is equivalent to +6 dB
 
 const reverb = new Tone.Reverb({
 decay: 3,
-wet: 0.5
-}).connect(limiter);
+wet: 0.3
+}).connect(gain);
 
-const comp = new Tone.Compressor({
-threshold: -24,
-ratio: 3,
-attack: 0.02,
-release: 0.15
-}).connect(reverb);
+const gain2 = new Tone.Gain(0.7).connect(reverb);
 
 const allUrls = {};
 // Ambient stems
@@ -55,11 +52,11 @@ allUrls[`hihat${i}`] = `./audio/Nowhere/hihat-${i}.mp3`;
 }
 // Snares
 for (let i = 1; i <= 5; i++) {
-allUrls[`SNARE${i}`] = `./audio/Nowhere/SNARE_${i}.wav`;
+allUrls[`glitch${i}`] = `./audio/Nowhere/glitch-${i}.mp3`;
 }
 // Kicks
 for (let i = 1; i <= 7; i++) {
-allUrls[`KICK${i}`] = `./audio/Nowhere/KICK_${i}.wav`;
+allUrls[`glitch${i}`] = `./audio/Nowhere/glitch-${i}.mp3`;
 }
 
 // Separate panners for ambient tracks
@@ -72,7 +69,7 @@ positionX: getRandomNumber(-5, 5),
 positionY: getRandomNumber(-3, 3),
 positionZ: getRandomNumber(-2, 2),
 refDistance: 0.5
-}).connect(comp);
+}).connect(reverb);
 ambientPanners.push(panner);
 }
 
@@ -83,7 +80,7 @@ positionX: getRandomNumber(-5, 5),
 positionY: getRandomNumber(-3, 3),
 positionZ: getRandomNumber(-2, 2),
 refDistance: 0.5
-}).connect(comp);
+}).connect(gain2);
 
 const hihatPanner = new Tone.Panner3D({
 panningModel: "HRTF",
@@ -91,7 +88,7 @@ positionX: getRandomNumber(-5, 5),
 positionY: getRandomNumber(-3, 3),
 positionZ: getRandomNumber(-2, 2),
 refDistance: 0.5
-}).connect(comp);
+}).connect(gain2);
 
 const snarePanner = new Tone.Panner3D({
 panningModel: "HRTF",
@@ -99,7 +96,7 @@ positionX: getRandomNumber(-5, 5),
 positionY: getRandomNumber(-3, 3),
 positionZ: getRandomNumber(-2, 2),
 refDistance: 0.5
-}).connect(comp);
+}).connect(gain2);
 
 const kickPanner = new Tone.Panner3D({
 panningModel: "HRTF",
@@ -107,7 +104,7 @@ positionX: getRandomNumber(-5, 5),
 positionY: getRandomNumber(-3, 3),
 positionZ: getRandomNumber(-2, 2),
 refDistance: 0.5
-}).connect(comp);
+}).connect(gain2);
 
 document.addEventListener('DOMContentLoaded', () => {
     // ... existing code
@@ -203,11 +200,11 @@ playerToPlay = allPlayers.player(`hihat${randomIndex}`);
 pannerToUse = hihatPanner;
 } else if (b.gridRow === 2) {
 const randomIndex = floor(random(1, 6));
-playerToPlay = allPlayers.player(`SNARE${randomIndex}`);
+playerToPlay = allPlayers.player(`glitch${randomIndex}`);
 pannerToUse = snarePanner;
 } else if (b.gridRow === 3) {
 const randomIndex = floor(random(1, 8));
-playerToPlay = allPlayers.player(`KICK${randomIndex}`);
+playerToPlay = allPlayers.player(`glitch${randomIndex}`);
 pannerToUse = kickPanner;
 }
 if (playerToPlay) {
