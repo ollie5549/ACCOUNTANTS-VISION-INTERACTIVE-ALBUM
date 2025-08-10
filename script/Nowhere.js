@@ -43,7 +43,7 @@ for (let i = 1; i <= 14; i++) {
 allUrls[`ambient${i}`] = `./audio/Nowhere/${i}.mp3`;
 }
 // Glitch sounds
-for (let i = 1; i <= 64; i++) {
+for (let i = 1; i <= 8; i++) {
 allUrls[`glitch${i}`] = `./audio/Nowhere/glitch-${i}.mp3`;
 }
 // Hi-hats
