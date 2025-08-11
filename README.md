@@ -1,9 +1,11 @@
-Welcome to Accountant's Vision, the first published draft of this interactive audio-visual experience!
+Welcome to Accountant's Vision, an interactive audio-visual experience!
 
-# About the Project
+ #  📎 ☕ 📋 101 📈 🖋️ 📁 💰 € ¥ 12% 📊 0.00 💼
+
+# About
 This project combines Tone.js for audio processing with p5.js for visuals, creating a unique interactive album. All the audio, code, visuals and concept featured in this project was produced by Oliver Farrow (www.oliverfarrow.co.uk)
 
-# Explore the Project
+# Explore
 You can experience Accountant's Vision directly via the website link below:
 
 🌐 Accountant's Vision Interactive Album
@@ -14,9 +16,11 @@ https://ollie5549.github.io/ACCOUNTANTS-VISION-INTERACTIVE-ALBUM/
 I'd love to hear about your experience with Accountant's Vision. Email me at oliverfarrowmusic@gmail.com.
 
 
-# How to Run the Project
+# How to Run offline
 
 The easiest way to get the project up and running is to use Python's built-in web server.
+
+Download the code
 
 Open your terminal or command prompt.
 
