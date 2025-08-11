@@ -1,5 +1,5 @@
 # Welcome to Accountant's Vision
-📎 ☕ 📋 101 📈 🖋️ 📁  an essential interactive audio-visual experience! 💰 € ¥ 12% 📊 0.00 💼
+📎 ☕ 📋 101 📈 🖋️ 📁  The essential interactive audio-visual experience! 💰 € ¥ 12% 📊 0.00 💼
 
 # About
 This project combines Tone.js for audio processing with p5.js for visuals, creating a unique interactive album. All the audio, code, visuals and concept featured in this project was produced by Oliver Farrow (www.oliverfarrow.co.uk).
@@ -17,22 +17,14 @@ I'd love to hear about your experience with Accountant's Vision. Email me at oli
 
 # How to Run offline
 
-The easiest way to get the project up and running is to use Python's built-in web server.
+Follow these steps to get the project running on your local machine:
 
-Download the code
+Navigate to the project directory: Open your terminal or command prompt and change your current directory to the project's root folder. This is the folder that contains your index.html file.
 
-Open your terminal or command prompt.
+Tip: A common command to do this is cd [path/to/your/project], or open a New Terminal at Folder.
 
-Navigate to the project directory. Use the cd (change directory) command to get to the folder where your index.html file is located.
+Start the local server: With the terminal open in the correct folder, run the server command. For example, if you're using Python's built-in server, the command might be:
+python -m http.server 8000
 
-Start the server. Run one of the following commands, depending on your Python version:
-
-For Python 3:
-
-Bash
-python -m http.server
-For Python 2:
-
-Bash
-python -m SimpleHTTPServer
-Access the project. The terminal will tell you that the server is running on http://localhost:8000. Open your web browser and navigate to this address.
+Access the project in your browser: Your terminal should now show a message indicating that the server is running on http://localhost:8000. Open your web browser and navigate to the following address to view the project:
+http://localhost:8000/index.html
