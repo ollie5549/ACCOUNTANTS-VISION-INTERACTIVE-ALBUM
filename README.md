@@ -1,4 +1,5 @@
-# Welcome to Accountant's Vision, the interactive audio-visual experience!
+# Welcome to Accountant's Vision
+an essential interactive audio-visual experience!
 
 #  📎 ☕ 📋 101 📈 🖋️ 📁 💰 € ¥ 12% 📊 0.00 💼
 
