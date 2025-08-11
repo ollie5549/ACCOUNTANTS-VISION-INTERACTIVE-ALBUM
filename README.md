@@ -23,8 +23,14 @@ Navigate to the project directory: Open your terminal or command prompt and chan
 
 Tip: A common command to do this is cd [path/to/your/project], or open a New Terminal at Folder.
 
-Start the local server: With the terminal open in the correct folder, run the server command. For example, if you're using Python's built-in server, the command might be:
+Start the local server: With the terminal open in the correct folder, run the server command. 
+
+For example, if you're using Python's built-in server, the command might be:
+
 python -m http.server 8000
 
-Access the project in your browser: Your terminal should now show a message indicating that the server is running on http://localhost:8000. Open your web browser and navigate to the following address to view the project:
+Access the project in your browser: Your terminal should now show a message indicating that the server is running on http://localhost:8000. 
+
+Open your web browser and navigate to the following address to view the project:
 http://localhost:8000/index.html
+
