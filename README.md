@@ -1,7 +1,5 @@
 # Welcome to Accountant's Vision
-an essential interactive audio-visual experience!
-
-#  📎 ☕ 📋 101 📈 🖋️ 📁 💰 € ¥ 12% 📊 0.00 💼
+📎 ☕ 📋 101 📈 🖋️ 📁  an essential interactive audio-visual experience! 💰 € ¥ 12% 📊 0.00 💼
 
 # About
 This project combines Tone.js for audio processing with p5.js for visuals, creating a unique interactive album. All the audio, code, visuals and concept featured in this project was produced by Oliver Farrow (www.oliverfarrow.co.uk).
