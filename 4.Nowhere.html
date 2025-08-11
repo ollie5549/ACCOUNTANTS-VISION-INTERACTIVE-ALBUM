@@ -78,6 +78,15 @@ margin-bottom: 20px;
     line-height: 1.2;
 }
 
+            /* Custom CSS for the 3D text effect on the main title */
+            .main-title-3d {
+                text-shadow: 
+                    2px 2px 0px #00ff15,
+                    4px 4px 0px #5100ff,
+                    6px 6px 0px #ff0000;
+                color: #f4f4f4; /* Ensures the text color is set explicitly */
+            }
+
 /* --- Wobble Animation for letters --- */
 @keyframes wobble {
     0%, 100% { transform: rotate(0deg); }
@@ -173,6 +182,16 @@ animation: spin 1s linear infinite;
 margin-top: 20px;
 display: block;
 }
+
+                        .main-title-3d {
+                text-shadow: 
+                    25px 15px 40px #00ff15,
+                    17px 47px 10px #5100ff,
+                    19px 49px 20px #ff0000;
+                color: #fbff00; /* Ensures the text color is set explicitly */
+font-size: 4rem; /* This sets the font size to be very large */
+            }
+
 
 #loadingWatermark.loaded .spinner {
 display: none;
@@ -277,7 +296,7 @@ margin-bottom: 10px;
         <span class="wobble-letter" style="color: #FF7F00; text-shadow: 2px 2px 0 #B84B00;">m</span>
     </span>
 </a>
-<h1>Nowhere</h1>
+ <h1 class="main-title-3d">NOWHERE</h1>    
 </header>
 
 <main id="main-content">

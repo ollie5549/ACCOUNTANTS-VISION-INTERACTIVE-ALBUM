@@ -1,4 +1,4 @@
-/*! p5.js v1.11.8 June 05, 2025 */
+/*! p5.js v1.11.9 July 17, 2025 */
 (function (f) {
   if (typeof exports === 'object' && typeof module !== 'undefined') {
     module.exports = f()
@@ -23586,7 +23586,7 @@
       function (_dereq_, module, exports) {
         // a string of all valid unicode whitespaces
         // eslint-disable-next-line max-len
-        module.exports = '\t\n\v\f\r                　\u2028\u2029﻿';
+        module.exports = '\t\n\v\f\r                　\u2028\u2029﻿';
       },
       {
       }
@@ -37312,25 +37312,25 @@
    */
             var eightBitMacEncodings = {
               'x-mac-croatian':              // Python: 'mac_croatian'
-              'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®Š™´¨≠ŽØ∞±≤≥∆µ∂∑∏š∫ªºΩžø' + '¿¡¬√ƒ≈Ć«Č… ÀÃÕŒœĐ—“”‘’÷◊©⁄€‹›Æ»–·‚„‰ÂćÁčÈÍÎÏÌÓÔđÒÚÛÙıˆ˜¯πË˚¸Êæˇ',
+              'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®Š™´¨≠ŽØ∞±≤≥∆µ∂∑∏š∫ªºΩžø' + '¿¡¬√ƒ≈Ć«Č… ÀÃÕŒœĐ—“”‘’÷◊©⁄€‹›Æ»–·‚„‰ÂćÁčÈÍÎÏÌÓÔđÒÚÛÙıˆ˜¯πË˚¸Êæˇ',
               'x-mac-cyrillic':              // Python: 'mac_cyrillic'
-              'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ†°Ґ£§•¶І®©™Ђђ≠Ѓѓ∞±≤≥іµґЈЄєЇїЉљЊњ' + 'јЅ¬√ƒ≈∆«»… ЋћЌќѕ–—“”‘’÷„ЎўЏџ№Ёёяабвгдежзийклмнопрстуфхцчшщъыьэю',
+              'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ†°Ґ£§•¶І®©™Ђђ≠Ѓѓ∞±≤≥іµґЈЄєЇїЉљЊњ' + 'јЅ¬√ƒ≈∆«»… ЋћЌќѕ–—“”‘’÷„ЎўЏџ№Ёёяабвгдежзийклмнопрстуфхцчшщъыьэю',
               'x-mac-gaelic':              // http://unicode.org/Public/MAPPINGS/VENDORS/APPLE/GAELIC.TXT
-              'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ÆØḂ±≤≥ḃĊċḊḋḞḟĠġṀæø' + 'ṁṖṗɼƒſṠ«»… ÀÃÕŒœ–—“”‘’ṡẛÿŸṪ€‹›Ŷŷṫ·Ỳỳ⁊ÂÊÁËÈÍÎÏÌÓÔ♣ÒÚÛÙıÝýŴŵẄẅẀẁẂẃ',
+              'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ÆØḂ±≤≥ḃĊċḊḋḞḟĠġṀæø' + 'ṁṖṗɼƒſṠ«»… ÀÃÕŒœ–—“”‘’ṡẛÿŸṪ€‹›Ŷŷṫ·Ỳỳ⁊ÂÊÁËÈÍÎÏÌÓÔ♣ÒÚÛÙıÝýŴŵẄẅẀẁẂẃ',
               'x-mac-greek':              // Python: 'mac_greek'
-              'Ä¹²É³ÖÜ΅àâä΄¨çéèêë£™îï•½‰ôö¦€ùûü†ΓΔΘΛΞΠß®©ΣΪ§≠°·Α±≤≥¥ΒΕΖΗΙΚΜΦΫΨΩ' + 'άΝ¬ΟΡ≈Τ«»… ΥΧΆΈœ–―“”‘’÷ΉΊΌΎέήίόΏύαβψδεφγηιξκλμνοπώρστθωςχυζϊϋΐΰ­',
+              'Ä¹²É³ÖÜ΅àâä΄¨çéèêë£™îï•½‰ôö¦€ùûü†ΓΔΘΛΞΠß®©ΣΪ§≠°·Α±≤≥¥ΒΕΖΗΙΚΜΦΫΨΩ' + 'άΝ¬ΟΡ≈Τ«»… ΥΧΆΈœ–―“”‘’÷ΉΊΌΎέήίόΏύαβψδεφγηιξκλμνοπώρστθωςχυζϊϋΐΰ­',
               'x-mac-icelandic':              // Python: 'mac_iceland'
-              'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûüÝ°¢£§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑∏π∫ªºΩæø' + '¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸ⁄€ÐðÞþý·‚„‰ÂÊÁËÈÍÎÏÌÓÔÒÚÛÙıˆ˜¯˘˙˚¸˝˛ˇ',
+              'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûüÝ°¢£§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑∏π∫ªºΩæø' + '¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸ⁄€ÐðÞþý·‚„‰ÂÊÁËÈÍÎÏÌÓÔÒÚÛÙıˆ˜¯˘˙˚¸˝˛ˇ',
               'x-mac-inuit':              // http://unicode.org/Public/MAPPINGS/VENDORS/APPLE/INUIT.TXT
-              'ᐃᐄᐅᐆᐊᐋᐱᐲᐳᐴᐸᐹᑉᑎᑏᑐᑑᑕᑖᑦᑭᑮᑯᑰᑲᑳᒃᒋᒌᒍᒎᒐᒑ°ᒡᒥᒦ•¶ᒧ®©™ᒨᒪᒫᒻᓂᓃᓄᓅᓇᓈᓐᓯᓰᓱᓲᓴᓵᔅᓕᓖᓗ' + 'ᓘᓚᓛᓪᔨᔩᔪᔫᔭ… ᔮᔾᕕᕖᕗ–—“”‘’ᕘᕙᕚᕝᕆᕇᕈᕉᕋᕌᕐᕿᖀᖁᖂᖃᖄᖅᖏᖐᖑᖒᖓᖔᖕᙱᙲᙳᙴᙵᙶᖖᖠᖡᖢᖣᖤᖥᖦᕼŁł',
+              'ᐃᐄᐅᐆᐊᐋᐱᐲᐳᐴᐸᐹᑉᑎᑏᑐᑑᑕᑖᑦᑭᑮᑯᑰᑲᑳᒃᒋᒌᒍᒎᒐᒑ°ᒡᒥᒦ•¶ᒧ®©™ᒨᒪᒫᒻᓂᓃᓄᓅᓇᓈᓐᓯᓰᓱᓲᓴᓵᔅᓕᓖᓗ' + 'ᓘᓚᓛᓪᔨᔩᔪᔫᔭ… ᔮᔾᕕᕖᕗ–—“”‘’ᕘᕙᕚᕝᕆᕇᕈᕉᕋᕌᕐᕿᖀᖁᖂᖃᖄᖅᖏᖐᖑᖒᖓᖔᖕᙱᙲᙳᙴᙵᙶᖖᖠᖡᖢᖣᖤᖥᖦᕼŁł',
               'x-mac-ce':              // Python: 'mac_latin2'
-              'ÄĀāÉĄÖÜáąČäčĆćéŹźĎíďĒēĖóėôöõúĚěü†°Ę£§•¶ß®©™ę¨≠ģĮįĪ≤≥īĶ∂∑łĻļĽľĹĺŅ' + 'ņŃ¬√ńŇ∆«»… ňŐÕőŌ–—“”‘’÷◊ōŔŕŘ‹›řŖŗŠ‚„šŚśÁŤťÍŽžŪÓÔūŮÚůŰűŲųÝýķŻŁżĢˇ',
+              'ÄĀāÉĄÖÜáąČäčĆćéŹźĎíďĒēĖóėôöõúĚěü†°Ę£§•¶ß®©™ę¨≠ģĮįĪ≤≥īĶ∂∑łĻļĽľĹĺŅ' + 'ņŃ¬√ńŇ∆«»… ňŐÕőŌ–—“”‘’÷◊ōŔŕŘ‹›řŖŗŠ‚„šŚśÁŤťÍŽžŪÓÔūŮÚůŰűŲųÝýķŻŁżĢˇ',
               macintosh:              // Python: 'mac_roman'
-              'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑∏π∫ªºΩæø' + '¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸ⁄€‹›ﬁﬂ‡·‚„‰ÂÊÁËÈÍÎÏÌÓÔÒÚÛÙıˆ˜¯˘˙˚¸˝˛ˇ',
+              'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑∏π∫ªºΩæø' + '¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸ⁄€‹›ﬁﬂ‡·‚„‰ÂÊÁËÈÍÎÏÌÓÔÒÚÛÙıˆ˜¯˘˙˚¸˝˛ˇ',
               'x-mac-romanian':              // Python: 'mac_romanian'
-              'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ĂȘ∞±≤≥¥µ∂∑∏π∫ªºΩăș' + '¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸ⁄€‹›Țț‡·‚„‰ÂÊÁËÈÍÎÏÌÓÔÒÚÛÙıˆ˜¯˘˙˚¸˝˛ˇ',
+              'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ĂȘ∞±≤≥¥µ∂∑∏π∫ªºΩăș' + '¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸ⁄€‹›Țț‡·‚„‰ÂÊÁËÈÍÎÏÌÓÔÒÚÛÙıˆ˜¯˘˙˚¸˝˛ˇ',
               'x-mac-turkish':              // Python: 'mac_turkish'
-              'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑∏π∫ªºΩæø' + '¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸĞğİıŞş‡·‚„‰ÂÊÁËÈÍÎÏÌÓÔÒÚÛÙˆ˜¯˘˙˚¸˝˛ˇ'
+              'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑∏π∫ªºΩæø' + '¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸĞğİıŞş‡·‚„‰ÂÊÁËÈÍÎÏÌÓÔÒÚÛÙˆ˜¯˘˙˚¸˝˛ˇ'
             };
             /**
    * Decodes an old-style Macintosh string. Returns either a Unicode JavaScript
@@ -53959,6 +53959,7 @@
               include
             ];
             //if other shapes of this type have been created
+          } else if (this.ingredients.shapes[f] !== [include]) {
             //for every shape of this type
             for (var y in this.ingredients.shapes[f]) {
               //compare it with current shape and if it already exists make add false
@@ -54203,7 +54204,7 @@
         function _shapeDetails(idT, ingredients) {
           var shapeDetails = '';
           var shapeNumber = 0;
-          //goes trhough every shape type in ingredients
+          //goes through every shape type in ingredients
           for (var x in ingredients) {
             //and for every shape
             for (var y in ingredients[x]) {
@@ -54228,7 +54229,7 @@
         function _shapeList(idT, ingredients) {
           var shapeList = '';
           var shapeNumber = 0;
-          //goes trhough every shape type in ingredients
+          //goes through every shape type in ingredients
           for (var x in ingredients) {
             for (var y in ingredients[x]) {
               //it creates a line in a list
@@ -59314,7 +59315,7 @@
  * @property {String} VERSION
  * @final
  */
-        var VERSION = '1.11.8';
+        var VERSION = '1.11.9';
         // GRAPHICS RENDERER
         /**
  * The default, two-dimensional renderer.
@@ -66481,8 +66482,6 @@
                 p5.instance = null;
               }
             };
-            // ensure correct reporting of window dimensions
-            this._updateWindowSize();
             var friendlyBindGlobal = this._createFriendlyGlobalFunctionBinder();
             // If the user has created a global setup or draw function,
             // assume "global" mode and make everything global (i.e. on the window)
@@ -66518,7 +66517,8 @@
               // Run a check to see if the user has misspelled 'setup', 'draw', etc
               // detects capitalization mistakes only ( Setup, SETUP, MouseClicked, etc)
               p5._checkForUserDefinedFunctions(this);
-            }
+            }            // ensure correct reporting of window dimensions
+
             this._updateWindowSize();
             // call any registered init functions
             this.callRegisteredHooksFor('init');
@@ -66685,7 +66685,9 @@
                             value: newValue,
                             writable: true
                           });
-                          log('You just changed the value of "'.concat(prop, '", which was a p5 function. This could cause problems later if you\'re not careful.'));
+                          if (!p5.disableFriendlyErrors) {
+                            log('You just changed the value of "'.concat(prop, '", which was a p5 function. This could cause problems later if you\'re not careful.'));
+                          }
                         }
                       });
                     } catch (e) {
@@ -84596,7 +84598,7 @@
  *     let y = i * 20;
  *
  *     // Draw the image.
- *     image(img, 0, y, 100, 100);
+ *     image(images[i], 0, y, 100, 100);
  *   }
  *
  *   describe('A gray square with a file input beneath it. If the user selects multiple image files to load, they are displayed on the square.');
@@ -95431,7 +95433,7 @@
  * destination rectangle. This may have the effect of zooming into the
  * subsection.
  *
- * The tenth and eleventh paremeters, `xAlign` and `yAlign`, are also
+ * The tenth and eleventh parameters, `xAlign` and `yAlign`, are also
  * optional. They determine how to align the fitted subsection. `xAlign` can
  * be set to either `LEFT`, `RIGHT`, or `CENTER`. `yAlign` can be set to
  * either `TOP`, `BOTTOM`, or `CENTER`. By default, both `xAlign` and `yAlign`
@@ -112290,7 +112292,7 @@
  *
  *   background(200);
  *
- *   // Caclulate the angle conversion.
+ *   // Calculate the angle conversion.
  *   let deg = 45;
  *   let rad = radians(deg);
  *

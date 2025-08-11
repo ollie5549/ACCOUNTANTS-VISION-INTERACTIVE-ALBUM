@@ -41,11 +41,19 @@
         }
 
         h1 {
-            color: #f4f4f4;
+            /* color: #f4f4f4; */
             text-align: center;
             margin-top: 20px;
             margin-bottom: 20px;
         }
+                            .main-title-3d {
+                text-shadow: 
+                    25px 15px 40px #00ff15,
+                    7px 47px 10px #5100ff,
+                    19px 9px 20px #ff0000;
+                color: #ac5454; /* Ensures the text color is set explicitly */
+font-size: 4rem; /* This sets the font size to be very large */
+            }
 
         /* --- New CSS for the home button to accommodate the new styling --- */
         .home-button-container {
@@ -89,6 +97,16 @@
             75% { transform: rotate(1.5deg); }
         }
 
+                        .main-title-3d {
+                text-shadow: 
+                    45px 15px 20px #00ff15,
+                    17px 47px 40px #5100ff,
+                    49px 29px 20px #ff0000;
+                color: #fbff00; /* Ensures the text color is set explicitly */
+font-size: 4rem; /* This sets the font size to be very large */
+            }
+
+
         .wobble-letter {
             display: inline-block;
             animation: wobble 2s infinite;
@@ -105,6 +123,9 @@
             box-sizing: border-box;
             position: relative;
         }
+
+
+
 
         .p5-container {
             display: flex;
@@ -321,7 +342,7 @@
         </a>
     </div>
 
-    <h1>Colours</h1>
+    <h1 class="main-title-3d">COLOURS</h1>    
     
     <div id="main-content">
         <div class="p5-container" id="canvas-container"></div>

@@ -10,11 +10,7 @@ const comp = new Tone.Compressor({
     attack: 0.02,
     release: 0.15,
 }).connect(gain);
-const highpassFilter = new Tone.Filter({
-    type: "highpass",
-    frequency: 300,
-    rolloff: -24,
-}).connect(comp);
+
 const GroundPlayer = new Tone.Player({
     url: "./audio/DragonRide/Acoustic.mp3",
     loop: true,
@@ -22,7 +18,7 @@ const GroundPlayer = new Tone.Player({
 const AirPlayer = new Tone.Player({
     url: "./audio/DragonRide/Electronic.mp3",
     loop: true,
-}).connect(highpassFilter);
+}).connect(comp);
 const KitPlayer = new Tone.Player({
     url: "./audio/DragonRide/Kit.mp3",
     loop: true,
@@ -30,13 +26,13 @@ const KitPlayer = new Tone.Player({
 const ambientPlayer = new Tone.Player({
     url: "./audio/DragonRide/sky.mp3",
     loop: true,
-    volume: -100,
-}).connect(highpassFilter);
+    // volume: -100,
+}).connect(comp);
 const reverb = new Tone.Reverb({
     decay: 1,
     wet: 1,
-}).connect(highpassFilter);
-ambientPlayer.connect(reverb);
+}).connect(comp);
+ambientPlayer.connect(comp);
 
 // --- Loading Screen & Start Button Management ---
 let audioLoadedAndReady = false;
@@ -133,7 +129,7 @@ function preload() {
 function setup() {
     createCanvas(700, 400);
     noStroke();
-    rectMode(CORNERS);
+    rectMode(CORNER);
     imageMode(CENTER);
 }
 
@@ -231,14 +227,27 @@ function draw() {
     if (audioContextStarted) {
         const minVol = -40;
         const maxVol = 0;
+        const halfHeight = height / 2;
 
-        let groundVolume = map(finalImageY, inner, height - inner, minVol, maxVol);
+        // GroundPlayer and KitPlayer: full volume from bottom to middle, then fade out
+        // Map the lower half of the canvas to a full volume range
+        let groundVolume = map(finalImageY, halfHeight, height - inner, maxVol, maxVol);
+        // Map the upper half of the canvas to a fading volume range
+        if (finalImageY < halfHeight) {
+            groundVolume = map(finalImageY, inner, halfHeight, minVol, maxVol);
+        }
         GroundPlayer.volume.value = groundVolume;
         KitPlayer.volume.value = groundVolume;
 
-        let airVolume = map(finalImageY, inner, height - inner, maxVol, minVol);
+        // AirPlayer and ambientPlayer: full volume from top to middle, then fade out
+        // Map the upper half of the canvas to a full volume range
+        let airVolume = map(finalImageY, inner, halfHeight, maxVol, maxVol);
+        // Map the lower half of the canvas to a fading volume range
+        if (finalImageY > halfHeight) {
+            airVolume = map(finalImageY, halfHeight, height - inner, maxVol, minVol);
+        }
         AirPlayer.volume.value = airVolume;
-        ambientPlayer.volume.value = airVolume;
+        // ambientPlayer.volume.value = airVolume;
 
         const minDecay = 0.5;
         const maxDecay = 10;
