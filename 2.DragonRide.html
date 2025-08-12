@@ -33,13 +33,23 @@
             overflow: hidden;
             height: 100%;
         }
-
+/* 
         h1 {
             color: #f4f4f4;
             text-align: center;
             margin-top: 20px;
             margin-bottom: 10px;
-        }
+        } */
+
+                                .main-title-3d {
+                text-shadow: 
+                    25px 15px 40px #00ff15,
+                    17px 47px 10px #5100ff,
+                    19px 49px 20px #ff0000;
+                color: #fbff00; /* Ensures the text color is set explicitly */
+font-size: 4rem; /* This sets the font size to be very large */
+            }
+
 
         /* --- New CSS for the home button to accommodate the new styling --- */
         .home-button-container {
@@ -222,14 +232,6 @@
                 padding: 5px;
             }
 
-                        .main-title-3d {
-                text-shadow: 
-                    25px 15px 40px #00ff15,
-                    17px 47px 10px #5100ff,
-                    19px 49px 20px #ff0000;
-                color: #fbff00; /* Ensures the text color is set explicitly */
-font-size: 4rem; /* This sets the font size to be very large */
-            }
 
 
 
@@ -249,6 +251,9 @@ font-size: 4rem; /* This sets the font size to be very large */
 
 <body>
     <div id="loadingWatermark">
+        <div class="memo-box">
+                <p>📌 Steer the dragon!</p>
+            </div>
         <p id="loadingText">Loading Audio...</p>
         <div class="spinner"></div>
         <button id="startButton">Start Audio</button>
@@ -306,7 +311,10 @@ font-size: 4rem; /* This sets the font size to be very large */
         </a>
     </div>
 
-    <h1 class="main-title-3d">DRAGON RIDE</h1>   
+    <h1 class="main-title-3d">DRAGON RIDE</h1>  
+            <div class="memo-box">
+                <p>📌 Steer the dragon!</p>
+            </div> 
 
     <div id="main-content">
         <div class="p5-container" id="canvas-container"></div>

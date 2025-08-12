@@ -97,7 +97,7 @@ font-size: 4rem; /* This sets the font size to be very large */
                     17px 47px 40px #5100ff,
                     49px 29px 20px #ff0000;
                 color: #fbff00; /* Ensures the text color is set explicitly */
-font-size: 4rem; /* This sets the font size to be very large */
+                font-size: 4rem; /* This sets the font size to be very large */
             }
 
 
@@ -214,6 +214,10 @@ font-size: 4rem; /* This sets the font size to be very large */
             transition: opacity 0.5s ease-out;
         }
 
+        .memo-box p {
+    color: white;
+}
+
         #loadingWatermark .spinner {
             border: 8px solid #f3f3f3;
             border-top: 8px solid #3498db;
@@ -279,6 +283,9 @@ font-size: 4rem; /* This sets the font size to be very large */
 
 <body>
     <div id="loadingWatermark">
+                <div class="memo-box">
+                <p>📌 Explore the unknown! Interact with each object </p>
+            </div>
         <p id="loadingText">Loading Audio...</p>
         <div class="spinner"></div>
         <button id="startButton">Start Audio</button>
@@ -337,6 +344,10 @@ font-size: 4rem; /* This sets the font size to be very large */
     </div>
 
     <h1 class="main-title-3d">COLOURS</h1>    
+                    <div class="memo-box"
+                    >
+                <p>📌 Explore the unknown! Interact with each object </p>
+            </div>
     
     <div id="main-content">
         <div class="p5-container" id="canvas-container"></div>
