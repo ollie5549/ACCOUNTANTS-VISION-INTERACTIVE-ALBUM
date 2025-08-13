@@ -1,7 +1,7 @@
 // --- Tone.js Setup: Defines all players and audio effects ---
 // (All of the Tone.js setup is correct and unchanged)
 const limiter = new Tone.Limiter(-2).toDestination();
-const gain = new Tone.Gain(0.4).connect(limiter); // A gain of 2 is equivalent to +6 dB
+const gain = new Tone.Gain(0.2).connect(limiter); // A gain of 2 is equivalent to +6 dB
 
 
 const comp = new Tone.Compressor({

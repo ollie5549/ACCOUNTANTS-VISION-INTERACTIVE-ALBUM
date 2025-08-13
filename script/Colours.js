@@ -1,10 +1,7 @@
-
 // --- TONE.JS AUDIO SETUP ---
-
 const limiter = new Tone.Limiter(-2).toDestination();
-const gain = new Tone.Gain(0.8).connect(limiter); // A gain of 2 is equivalent to +6 dB
+const gain = new Tone.Gain(0.6).connect(limiter);
 
-// Use Tone.Player with URL directly.
 const AcousticPlayer = new Tone.Player({
     url: "./audio/COLOURS/ACOUSTIC.mp3",
     loop: true,
@@ -18,110 +15,71 @@ const ElectronicPlayer = new Tone.Player({
     loop: true,
 }).sync();
 
-// Create a list of players for easier iteration
 const players = [AcousticPlayer, AtmosPlayer, ElectronicPlayer];
 
-// Create separate Tone.Channels for each player to control their individual volumes
 const AcousticVolumeChannel = new Tone.Channel();
 const AtmosVolumeChannel = new Tone.Channel();
 const ElectronicVolumeChannel = new Tone.Channel();
 
-// --- NEW: Add a Tone.Panner3D for each stem ---
 const AcousticPanner = new Tone.Panner3D(0, 0, 0);
 const AtmosPanner = new Tone.Panner3D(0, 0, 0);
 const ElectronicPanner = new Tone.Panner3D(0, 0, 0);
 
-// This channel will sum the "dry" signals from all players BEFORE effects
 const DryVolumeChannel = new Tone.Channel();
 
-// Crossfade between the summed FX signal (crossFade.a) and the summed Dry signal (crossFade.b)
 const crossFade = new Tone.CrossFade().connect(limiter);
 
-// Effects Chain
 const chorus = new Tone.Chorus().start();
 const autoFilter = new Tone.AutoFilter().start();
 const reverb = new Tone.Reverb();
 reverb.wet.value = 0.4;
 
-// To reduce the reverb's volume, set the 'wet' value to a lower number.
-// The default is 1, a value like 0.2 will make it much more subtle.
-
-
-// --- Corrected Signal Flow ---
-// 1. Players send their signal to their individual volume channels
 AcousticPlayer.connect(AcousticVolumeChannel);
 AtmosPlayer.connect(AtmosVolumeChannel);
 ElectronicPlayer.connect(ElectronicVolumeChannel);
 
-// 2. Individual volume channels send their signal to the Panner
 AcousticVolumeChannel.connect(AcousticPanner);
 AtmosVolumeChannel.connect(AtmosPanner);
 ElectronicVolumeChannel.connect(ElectronicPanner);
 
-// 3. The Panners now have the stem's signal and send their output to the DryVolumeChannel for the dry mix
 AcousticPanner.connect(DryVolumeChannel);
 AtmosPanner.connect(DryVolumeChannel);
 ElectronicPanner.connect(DryVolumeChannel);
 
-// 4. Panners also send their signal into the effects chain
 AcousticPanner.connect(chorus);
 AtmosPanner.connect(chorus);
 ElectronicPanner.connect(chorus);
 
-// 5. Effects are chained together
 chorus.connect(autoFilter);
 autoFilter.connect(reverb, gain);
 
-// 6. Reverb (wet signal) goes to crossFade.a
 reverb.connect(crossFade.a);
-
-// 7. DryVolumeChannel (dry signal) goes to crossFade.b
 DryVolumeChannel.connect(crossFade.b);
 
-// Set initial crossfade value (e.g., balanced dry/wet)
 crossFade.fade.value = 0.5;
 
-// --- Function to generate a random number within a specified range ---
 function getRandomNumber(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-// --- Randomization Function for Stems ---
-/**
- * Randomizes the starting time and playback rate of each player and starts the transport.
- * @param {number} maxOffset - The maximum possible delay in seconds for a stem.
- * @param {number} minRate - The minimum playback rate (e.g., 0.8 for half speed).
- * @param {number} maxRate - The maximum playback rate (e.g., 1.2 for double speed).
- */
 function randomizeAndStart(maxOffset = 1, minRate = 0.6, maxRate = 1.1) {
     if (Tone.Transport.state === 'started') {
-        console.log("Audio already playing. Stopping before randomizing.");
         Tone.Transport.stop();
-        // Stop all players to reset them
         players.forEach(player => player.stop());
     }
 
-    // Set a random tempo for the entire transport
     const randomTempo = getRandomNumber(40, 120);
     Tone.Transport.bpm.value = randomTempo;
 
-    // Start all players with a random delay and a random playback rate
     players.forEach(player => {
         const randomDelay = getRandomNumber(0, maxOffset);
         const randomRate = getRandomNumber(minRate, maxRate);
-
-        // Set the random playback rate
         player.playbackRate = randomRate;
-
-        // Use `start()` with a time offset relative to the transport's start
         player.start(`+${randomDelay}`);
-        console.log(`Player starting at: +${randomDelay.toFixed(2)}s with speed: ${randomRate.toFixed(2)}x`);
     });
 
     Tone.Transport.start();
-    console.log("Randomized playback started!");
 }
-
 
 // --- Loading Screen & Start Button Management ---
 let audioLoadedAndReady = false;
@@ -138,7 +96,6 @@ function showButtons() {
         loadingWatermark.classList.add('loaded');
         startButton.style.display = 'block';
         randomizeButton.style.display = 'block';
-        console.log("Start and Randomize buttons shown, spinner hidden.");
     }
 }
 
@@ -149,32 +106,34 @@ function hideLoadingScreen() {
         loadingWatermark.style.opacity = '0';
         loadingWatermark.addEventListener('transitionend', () => {
             loadingWatermark.style.display = 'none';
-            console.log("Loading screen hidden.");
         }, {
             once: true
         });
-    } else {
-        console.warn("Loading watermark element not found.");
+    }
+}
+
+function startAudioContext() {
+    if (audioLoadedAndReady && !audioContextStarted) {
+        Tone.start().then(() => {
+            audioContextStarted = true;
+            console.log("Tone.context resumed successfully! 🔊");
+            // Optionally, you can also start the players here
+            // startPlayersAndTransport();
+        }).catch(e => {
+            console.error("Error resuming Tone.context:", e);
+        });
     }
 }
 
 function handleStartButtonClick() {
-    if (audioLoadedAndReady && !audioContextStarted) {
-        console.log("Start button clicked. Attempting to start audio context.");
-        Tone.start().then(() => {
-            console.log("Tone.context resumed successfully! 🔊");
-            audioContextStarted = true;
-            startPlayersAndTransport();
-            hideLoadingScreen();
-        }).catch(e => {
-            console.error("Error resuming Tone.context:", e);
-            alert("Failed to start audio. Please ensure your device's media volume is up and try again.");
-        });
-    } else if (audioContextStarted) {
-        console.log("Audio context already started. Hiding loading screen.");
+    if (audioContextStarted) {
+        startPlayersAndTransport();
         hideLoadingScreen();
     } else {
-        console.warn("Start button clicked but audio not yet loaded. Please wait.");
+        // This case should ideally not be hit if the first interaction is handled properly
+        startAudioContext();
+        startPlayersAndTransport();
+        hideLoadingScreen();
     }
 }
 
@@ -185,13 +144,11 @@ function invertColors() {
     if (body) {
         body.style.filter = 'invert(1)';
         body.style.transition = 'filter 0.5s ease-in-out';
-        console.log("Colors inverted!");
     }
 }
 
 function handleRandomizeButtonClick() {
     if (!audioLoadedAndReady) {
-        console.warn("Randomize button clicked, but audio not yet loaded. Please wait.");
         return;
     }
 
@@ -200,67 +157,19 @@ function handleRandomizeButtonClick() {
         hasBroken = true;
     }
 
-    if (!audioContextStarted) {
-        Tone.start().then(() => {
-            console.log("Tone.context resumed successfully! 🔊");
-            audioContextStarted = true;
-            randomizeAndStart();
-            randomizeShapePositions();
-            hideLoadingScreen();
-        }).catch(e => {
-            console.error("Error resuming Tone.context:", e);
-        });
-    } else {
-        randomizeAndStart();
-        randomizeShapePositions();
-    }
+    // Since we're now starting the context on ANY interaction,
+    // we can assume it's already started here.
+    randomizeAndStart();
+    randomizeShapePositions();
+    hideLoadingScreen();
 }
 
 function startPlayersAndTransport() {
     if (Tone.Transport.state !== 'started') {
         Tone.Transport.start();
         players.forEach(player => player.start());
-        console.log("Audio playback (Tone.Transport and Players) started! ▶️");
-    } else {
-        console.log("Tone.Transport and Players were already started.");
     }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Content Loaded.");
-
-    const startButton = document.getElementById('startButton');
-    const randomizeButton = document.getElementById('randomizeButton');
-
-    if (startButton) {
-        startButton.addEventListener('click', handleStartButtonClick);
-        startButton.addEventListener('touchend', handleStartButtonClick);
-        console.log("Start button listeners attached.");
-    } else {
-        console.error("Start button not found!");
-    }
-
-    if (randomizeButton) {
-        randomizeButton.addEventListener('click', handleRandomizeButtonClick);
-        randomizeButton.addEventListener('touchend', handleRandomizeButtonClick);
-        console.log("Randomize button listeners attached.");
-    } else {
-        console.error("Randomize button not found!");
-    }
-
-    Tone.loaded().then(() => {
-        console.log("All Tone.Player audio files loaded!");
-        audioLoadedAndReady = true;
-        showButtons();
-    }).catch(error => {
-        console.error("Error loading audio files (Tone.loaded()):", error);
-        alert("Failed to load audio files. Please check paths and network console for errors.");
-        showButtons();
-        const loadingText = document.getElementById('loadingText');
-        if (loadingText) loadingText.textContent = "Error loading audio. Try again?";
-    });
-});
-
 
 // --- p5.js SKETCH LOGIC ---
 
@@ -273,7 +182,7 @@ let p5CanvasElement;
 function setup() {
     const canvas = createCanvas(700, 400, WEBGL);
     canvas.parent('canvas-container');
-    p5CanvasElement = canvas.elt; // Store the raw canvas DOM element
+    p5CanvasElement = canvas.elt;
 
     angleMode(DEGREES);
     normalMaterial();
@@ -340,7 +249,6 @@ function randomizeShapePositions() {
         shapes[i].rotY = random(-180, 180);
         shapes[i].rotZ = random(-180, 180);
     }
-    console.log("Shapes randomized.");
 }
 
 function draw() {
@@ -400,7 +308,6 @@ function handleInteractionStart(inputX, inputY) {
                 prevTouchX = inputX;
                 prevTouchY = inputY;
             }
-            console.log(`Interaction started on ${shape.name}.`);
             return false;
         }
     }
@@ -438,9 +345,7 @@ function handleInteractionDrag(currentX, currentY) {
             const rotY = currentShape.rotY % 360;
 
             const mappedPannerX = map(rotY, -180, 180, -1, 1);
-
             const mappedPannerY = map(rotX, -180, 180, -1, 1);
-
             const mappedPannerZ = map((rotX + rotY) % 360, -360, 360, -1, 1);
 
             AcousticPanner.positionX.value = mappedPannerX;
@@ -454,8 +359,6 @@ function handleInteractionDrag(currentX, currentY) {
             ElectronicPanner.positionX.value = mappedPannerX;
             ElectronicPanner.positionY.value = mappedPannerY;
             ElectronicPanner.positionZ.value = mappedPannerZ;
-
-            console.log(`Panner3D Position - X: ${mappedPannerX.toFixed(2)}, Y: ${mappedPannerY.toFixed(2)}, Z: ${mappedPannerZ.toFixed(2)}`);
         }
 
         if (currentShape.name === 'box') {
@@ -540,11 +443,11 @@ function handleInteractionEnd() {
         return false;
     }
     draggedShape = null;
-    console.log("Interaction ended. Dragged shape reset.");
     return false;
 }
 
 function mousePressed() {
+    startAudioContext();
     return handleInteractionStart(mouseX, mouseY);
 }
 
@@ -557,29 +460,24 @@ function mouseReleased() {
 }
 
 function touchStarted() {
-    // NEW: Check if the touch event originated on the canvas itself
     if (event.target === p5CanvasElement && touches.length > 0) {
+        startAudioContext();
         return handleInteractionStart(touches[0].x, touches[0].y);
     }
-    // If not on the canvas, return true to allow other elements to handle the event
     return true;
 }
 
 function touchMoved() {
-    // NEW: Check if the touch event originated on the canvas itself
     if (event.target === p5CanvasElement && touches.length > 0) {
         return handleInteractionDrag(touches[0].x, touches[0].y);
     }
-    // If not on the canvas, return true
     return true;
 }
 
 function touchEnded() {
-    // NEW: Check if the touch event originated on the canvas itself
     if (event.target === p5CanvasElement && touches.length == 0) {
         return handleInteractionEnd();
     }
-    // If not on the canvas, return true
     return true;
 }
 
@@ -609,3 +507,43 @@ function shuffle(array) {
     }
     return array;
 }
+
+// --- NEW CODE: Event listeners to handle the initial audio context start ---
+document.addEventListener('DOMContentLoaded', () => {
+    const startButton = document.getElementById('startButton');
+    const randomizeButton = document.getElementById('randomizeButton');
+
+    // Attach startAudioContext to the initial button clicks
+    if (startButton) {
+        startButton.addEventListener('click', () => {
+            startAudioContext();
+            handleStartButtonClick();
+        });
+        startButton.addEventListener('touchend', () => {
+            startAudioContext();
+            handleStartButtonClick();
+        });
+    }
+
+    if (randomizeButton) {
+        randomizeButton.addEventListener('click', () => {
+            startAudioContext();
+            handleRandomizeButtonClick();
+        });
+        randomizeButton.addEventListener('touchend', () => {
+            startAudioContext();
+            handleRandomizeButtonClick();
+        });
+    }
+
+    Tone.loaded().then(() => {
+        audioLoadedAndReady = true;
+        showButtons();
+    }).catch(error => {
+        console.error("Error loading audio files:", error);
+        alert("Failed to load audio files.");
+        showButtons();
+        const loadingText = document.getElementById('loadingText');
+        if (loadingText) loadingText.textContent = "Error loading audio. Try again?";
+    });
+});

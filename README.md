@@ -19,6 +19,7 @@ I'd love to hear about your experience with Accountant's Vision. Email me at oli
 
 Follow these steps to get the project running on your local machine:
 
+Option 1 - Use python
 Navigate to the project directory: Open your terminal or command prompt and change your current directory to the project's root folder. This is the folder that contains your index.html file.
 
 Tip: A common command to do this is cd [path/to/your/project], or open a New Terminal at Folder.
@@ -34,3 +35,16 @@ Access the project in your browser: Your terminal should now show a message indi
 Open your web browser and navigate to the following address to view the project:
 http://localhost:8000/index.html
 
+Option 2 – Use Node.js “http-server”
+Install Node.js if you don’t have it: https://nodejs.org/
+Install a quick static server:
+npm install -g http-server
+In Terminal, cd to your project folder and run:
+http-server
+Open the given http://localhost:8080 URL in your browser.
+
+Option 3 - Use Visual Studio Code’s “Live Server” extension
+If you code in VS Code:
+Install the Live Server extension.
+Right-click your index.html → Open with Live Server.
+It’ll open at http://127.0.0.1:5500/....
