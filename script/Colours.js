@@ -1,6 +1,6 @@
 // --- TONE.JS AUDIO SETUP ---
 const limiter = new Tone.Limiter(-2).toDestination();
-const gain = new Tone.Gain(0.6).connect(limiter);
+const gain = new Tone.Gain(0.3).connect(limiter);
 
 const AcousticPlayer = new Tone.Player({
     url: "./audio/COLOURS/ACOUSTIC.mp3",
@@ -27,7 +27,7 @@ const ElectronicPanner = new Tone.Panner3D(0, 0, 0);
 
 const DryVolumeChannel = new Tone.Channel();
 
-const crossFade = new Tone.CrossFade().connect(limiter);
+const crossFade = new Tone.CrossFade().connect(gain);
 
 const chorus = new Tone.Chorus().start();
 const autoFilter = new Tone.AutoFilter().start();
